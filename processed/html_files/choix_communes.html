@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<!-- This is a comment -->
+<!-- scrip uses chosen library -->
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
+
+
+<script>
+	
+$(document).ready(function () {
+
+    $(".chosen-select").chosen({
+  no_results_text: "Oops, nothing found!"})
+});
+
+</script>
+
+ 
+{% if name %}
+<form action="/generatemap" method="get">
+{% for item in name %}
+<h3>Pour le département {{item}}, choisissez une ou plusieurs communes </h3>
+	
+
+<select data-placeholder="Choisissez parmi la liste..." multiple class="chosen-select" name="choix_des_communes[]" multiple="multiple">
+<option value=""></option>
+{% for item in name %}
+<option> {{item}} </option>
+{% endfor %}
+<option> Ain (1) </option>
+<option> Aisne (2) </option>
+<option> Allier (3) </option>
+
+</select>
+  
+  <!--   -->  
+
+{% endfor %}
+<input type="submit" name = "othername">
+</form>
+{%  else %}
+<h1>Aucun departement de choisi </h1>
+{% endif %}
+  
+
+
+
+    
+  </div>
+</div>
+
+</body>
+</html>
