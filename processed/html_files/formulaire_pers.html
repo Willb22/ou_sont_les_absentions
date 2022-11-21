@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<!-- This is a comment -->
+<!-- scrip uses chosen library -->
+<h1>Choisissez un ou plusieurs départements</h1>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
+
+
+<script>
+	
+$(document).ready(function () {
+
+    $(".chosen-select").chosen({
+  no_results_text: "Oops, nothing found!"})
+});
+
+</script>
+
+ 
+<!-- "https://elections-pres-france17.herokuapp.com/departements" -->  
+<!-- "http://127.0.0.1:5000/departements" -->  
+	
+<form action="/departements" method="get">
+  <select data-placeholder="Choisissez parmi la liste..." multiple class="chosen-select" name="choix_des_departements[]" multiple="multiple">
+    <option value=""></option>
+
+	{% for departement in liste %}
+	<option> {{departement}} </option>
+	{% endfor %}
+
+  </select>
+  <input type="submit" name = "othername">
+  
+</form>
+
+
+
+
+
+
+
+    
+  </div>
+</div>
+
+</body>
+</html>
+
