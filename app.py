@@ -15,7 +15,7 @@ def onef():
 
 @app.route('/', methods = ['GET'])
 def trial():
-	res = df['Libellé du département'][0]
+	#res = df['Libellé du département'][0]
 	
 	
 	#res = request.form
