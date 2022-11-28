@@ -11,11 +11,21 @@ def onef():
 
     return "<h1>Say hi !!</h1>"
 
+
 @app.route('/', methods = ['GET'])
 def trial():
 
-	return "<h1>Say hi !!</h1>"
-	
+	return render_template('index.html')
+
+
+@app.route('/france2017', methods=['GET'])
+def whyname():
+	return render_template('./france_2017/menu.html')
+
+@app.route('/france2017/paris75', methods=['GET'])
+def whyname1():
+	return render_template('./france_2017/paris.html')
+
 @app.route('/formulaire', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
