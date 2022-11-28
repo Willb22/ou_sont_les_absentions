@@ -1,17 +1,14 @@
 #/usr/bin/python3
 from flask import Flask, request, jsonify, render_template
-from models import  pd, nd, map_1, liste_communes, all_departements, communes_for_map_a
+from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, ammend_jura_ain
 #from models_geojson import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
 import json
 app = Flask(__name__, template_folder= "./processed/html_files/")
-#app = Flask(__name__)
 
 
 @app.route('/', methods = ['POST'])
 def onef():
-	
-	
-	
+
     return "<h1>Say hi !!</h1>"
 
 @app.route('/', methods = ['GET'])
@@ -38,7 +35,6 @@ def create_form_communes():
 
 @app.route('/generatemap', methods = ['GET'])
 def test_map():
-    #return map_1._repr_html_()
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
 	map_to_go = communes_for_map_a(deps)
