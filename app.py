@@ -1,34 +1,35 @@
 #/usr/bin/python3
 from flask import Flask, request, jsonify, render_template
-from models import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
+from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, ammend_jura_ain
+#from models_geojson import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
 import json
 app = Flask(__name__, template_folder= "./processed/html_files/")
-#app = Flask(__name__)
 
 
 @app.route('/', methods = ['POST'])
 def onef():
-	
-	
-	
+
     return "<h1>Say hi !!</h1>"
+
 
 @app.route('/', methods = ['GET'])
 def trial():
-	#res = df['Libellé du département'][0]
-	
-	
-	#res = request.form
-	#res = request.args
-	#line = int(request.args.get('commune') )
-	commune = request.args.get('commune') 
-	_filter = df[df['Libellé de la commune']== commune]
-	#res = df['Libellé de la circonscription'][line]
-	#res = render_template('geo33nv.html')
-	#res = str(_filter['latitude'].mean())
-	res = render_template('choix_departements.html')
-	return res
-	
+
+	return render_template('index.html')
+
+
+@app.route('/france2017', methods=['GET'])
+def whyname():
+	return render_template('./france_2017/menu.html')
+
+@app.route('/france2017/paris75', methods=['GET'])
+def whyname1():
+	return render_template('./france_2017/paris.html')
+
+# @app.route('/france2017/paris75_reverse_colour', methods=['GET'])
+# def whyname2():
+# 	return render_template('./france_2017/paris_reverse_colour.html')
+
 @app.route('/formulaire', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
@@ -45,18 +46,12 @@ def create_form_communes():
 	return res
 	
 
-@app.route('/communes', methods = ['GET'])
-def afunc():
-	res = render_template('geo33nv.html')
-	return res
-
 
 @app.route('/generatemap', methods = ['GET'])
 def test_map():
-    #return map_1._repr_html_()
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
-	map_to_go = communes_for_map(deps)
+	map_to_go = communes_for_map_a(deps)
 	return map_to_go._repr_html_()
     
     
