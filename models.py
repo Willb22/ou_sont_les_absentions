@@ -10,7 +10,7 @@ def ammend_jura_ain(df):
     return df
 
 def prepare_df(path):
-	df = pd.read_csv('./processed/abstentions.csv')
+	df = pd.read_csv(path)
 	df = df.dropna()
 	renamed_cols = {'ville': 'Libellé de la commune', 'abs_ins': '% Abs/Ins', 'abstentions': 'Abstentions',
 					'inscrits': 'Inscrits', 'libelle_du_departement': 'Libellé du département'}
@@ -22,6 +22,11 @@ def prepare_df(path):
 	df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
 
 	return df
+def francemetropole():
+	path = './processed/abstentions.csv'
+	df = prepare_df(path)
+	res = KeplerGl(height=500, data={"data_1": df}, config=_mapconfig)
+	return res
 
 def liste_communes(departements):
 	#create dictionary with all communes for entered departements
@@ -81,6 +86,7 @@ def communes_for_map_a(communes_liste):
 						   right_on=['Code du département', 'Libellé de la commune'])
 	res = KeplerGl(height=500, data={"data_1": filtered_df}, config=_mapconfig)
 	return res
+
 
 colorscheme = [
 					  "#5A1846",
