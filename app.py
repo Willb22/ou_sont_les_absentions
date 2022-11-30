@@ -1,6 +1,6 @@
 #/usr/bin/python3
 from flask import Flask, request, jsonify, render_template
-from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, ammend_jura_ain
+from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole
 #from models_geojson import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
 import json
 app = Flask(__name__, template_folder= "./processed/html_files/")
