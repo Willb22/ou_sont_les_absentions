@@ -23,6 +23,14 @@ def prepare_df(path):
 
 	return df
 
+
+def francemetropole():
+	path = './processed/abstentions.csv'
+	df = prepare_df(path)
+	res = KeplerGl(height=500, data={"data_1": df}, config=_mapconfig)
+	return res
+	
+	
 def liste_communes(departements):
 	#create dictionary with all communes for entered departements
 	resu = {}

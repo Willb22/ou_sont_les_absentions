@@ -26,10 +26,14 @@ def whyname():
 def whyname1():
 	return render_template('./france_2017/paris.html')
 
-# @app.route('/france2017/paris75_reverse_colour', methods=['GET'])
-# def whyname2():
-# 	return render_template('./france_2017/paris_reverse_colour.html')
 
+@app.route('/france2017/francemetropole', methods=['GET'])
+def whyname2():
+
+	map_to_go = francemetropole()
+	return map_to_go._repr_html_()
+	
+	
 @app.route('/formulaire', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
