@@ -3,7 +3,7 @@ import numpy as nd
 import pandas as pd
 #import geopandas as gpd
 from keplergl import KeplerGl
-
+path_abstentions = './processed/abstentions.csv'
 def ammend_jura_ain(df):
     df['code_postal'] = nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Chancia'), '39102', df['code_postal'] )
     df['code_postal']= nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Lavancia-Epercy'), '39283', df['code_postal'] )
@@ -22,9 +22,11 @@ def prepare_df(path):
 	df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
 
 	return df
-def francemetropole():
-	path = './processed/abstentions.csv'
+def francemetropole(path):
 	df = prepare_df(path)
+	keep_columns = ['Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département',
+					'Adresse complète']
+	filtered_df = df[keep_columns]
 	res = KeplerGl(height=500, data={"data_1": df}, config=_mapconfig)
 	return res
 

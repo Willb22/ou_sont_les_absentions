@@ -1,6 +1,6 @@
 #/usr/bin/python3
 from flask import Flask, request, jsonify, render_template
-from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole
+from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole, path_abstentions
 #from models_geojson import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
 import json
 app = Flask(__name__, template_folder= "./processed/html_files/")
@@ -23,7 +23,7 @@ def whyname1():
 @app.route('/france2017/francemetropole', methods=['GET'])
 def whyname2():
 
-	map_to_go = francemetropole()
+	map_to_go = francemetropole(path_abstentions)
 	return map_to_go._repr_html_()
 
 @app.route('/formulaire', methods = ['GET'])
