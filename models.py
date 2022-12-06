@@ -3,14 +3,18 @@ import numpy as nd
 import pandas as pd
 #import geopandas as gpd
 from keplergl import KeplerGl
+
 path_abstentions = './processed/abstentions.csv'
+
 def ammend_jura_ain(df):
     df['code_postal'] = nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Chancia'), '39102', df['code_postal'] )
     df['code_postal']= nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Lavancia-Epercy'), '39283', df['code_postal'] )
     return df
 
 def prepare_df(path):
+
 	df = pd.read_csv(path)
+
 	df = df.dropna()
 	renamed_cols = {'ville': 'Libellé de la commune', 'abs_ins': '% Abs/Ins', 'abstentions': 'Abstentions',
 					'inscrits': 'Inscrits', 'libelle_du_departement': 'Libellé du département'}
@@ -22,6 +26,7 @@ def prepare_df(path):
 	df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
 
 	return df
+
 def francemetropole(path):
 	df = prepare_df(path)
 	keep_columns = ['Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département',
@@ -29,6 +34,7 @@ def francemetropole(path):
 	filtered_df = df[keep_columns]
 	res = KeplerGl(height=500, data={"data_1": df}, config=_mapconfig)
 	return res
+
 
 def liste_communes(departements):
 	#create dictionary with all communes for entered departements
