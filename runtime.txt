@@ -1,6 +1,2 @@
-<<<<<<< HEAD
-python-3.6.9
-=======
 python-3.9.15
->>>>>>> my_remote_branches/main
 
