@@ -5,12 +5,21 @@ import pandas as pd
 from keplergl import KeplerGl
 
 path_abstentions = './processed/abstentions.csv'
+path_paris = './processed/csv_files/geo_paris.csv'
+
+class Integrate_cities:
+	def __int__(self):
+		pass
+	def add_paris(self):
+		pass
+
 
 def ammend_jura_ain(df):
     df['code_postal'] = nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Chancia'), '39102', df['code_postal'] )
     df['code_postal']= nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Lavancia-Epercy'), '39283', df['code_postal'] )
     return df
-
+def add_paris(df):
+	paris_data = pd.read_csv(path_paris)
 def prepare_df(path):
 
 	df = pd.read_csv(path)
@@ -29,10 +38,9 @@ def prepare_df(path):
 
 def francemetropole(path):
 	df = prepare_df(path)
-	keep_columns = ['Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département',
-					'Adresse complète']
-	filtered_df = df[keep_columns]
-	res = KeplerGl(height=500, data={"data_1": df}, config=_mapconfig)
+	keep_columns = ['longitude','latitude','Libellé de la commune','% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département', 'Adresse complète']
+	df_keep_columns = df[keep_columns]
+	res = KeplerGl(height=500, data={"data_1": df_keep_columns}, config=_mapconfig)
 	return res
 
 

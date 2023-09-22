@@ -27,7 +27,7 @@ def whyname2():
 	map_to_go = francemetropole(path_abstentions)
 	return map_to_go._repr_html_()
 
-@app.route('/formulaire', methods = ['GET'])
+@app.route('/france2017/formulaire', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
 

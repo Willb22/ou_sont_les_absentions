@@ -1,5 +1,57 @@
 <!DOCTYPE html>
 <html>
+
+
+<head>
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+<style>
+.dropbtn {
+
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
+
+.dropdown {
+  position: center;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #3e8e41;}
+
+.center {
+  margin: auto;
+  width: 70%;
+
+  padding: 10px;
+}
+
+</style>
+</head>
+
+
 <body>
 
 <!-- This is a comment -->
@@ -23,29 +75,22 @@ $(document).ready(function () {
  
 <!-- "https://elections-pres-france17.herokuapp.com/departements" -->  
 <!-- "http://127.0.0.1:5000/departements" -->  
-	
-<form action="/departements" method="get">
-  <select data-placeholder="Choisissez parmi la liste..." multiple class="chosen-select" name="choix_des_departements[]" multiple="multiple">
-    <option value=""></option>
+  <div class="dropdown">
+    <form action="/departements" method="get">
+      <select data-placeholder="Choisissez parmi la liste..." multiple class="chosen-select" name="choix_des_departements[]" multiple="multiple">
 
-	{% for departement in liste %}
-	<option> {{departement}} </option>
-	{% endfor %}
+            <button class="dropbtn">Choisissez lalala</button>
+            <div class="dropdown-content">
+                {% for departement in liste %}
+                <option> {{departement}} </option>
+                {% endfor %}
+            </div>
 
-  </select>
-  <input type="submit" name = "othername">
-  
-</form>
+      </select>
+      <input type="submit" name = "othername">
 
-
-
-
-
-
-
-    
+    </form>
   </div>
-</div>
 
 </body>
 </html>
