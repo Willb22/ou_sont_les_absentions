@@ -14,14 +14,34 @@ class Integrate_cities:
 		pass
 
 
-def ammend_jura_ain(df):
-    df['code_postal'] = nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Chancia'), '39102', df['code_postal'] )
-    df['code_postal']= nd.where((df['Libellé du département']=='Jura') & (df['Libellé de la commune']=='Lavancia-Epercy'), '39283', df['code_postal'] )
-    return df
-def add_paris(df):
-	paris_data = pd.read_csv(path_paris)
-def prepare_df(path):
+def create_denomination_complete(df):
+	df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
+	return df
 
+
+def add_paris(df):
+	paris_with_coords = pd.read_csv(path_paris)
+	keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
+					'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
+	paris_keep_columns = paris_with_coords[keep_columns]
+	renamed_cols = {'geo_adresse': 'Adresse complète'}
+	paris_keep_columns.rename(columns=renamed_cols, inplace=True)
+	paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
+	paris_keep_columns = create_denomination_complete(paris_keep_columns)
+	df = df.append(paris_keep_columns)
+	return df
+
+
+def ammend_jura_ain(df):
+	df['code_postal'] = nd.where((df['Libellé du département'] == 'Jura') & (df['Libellé de la commune'] == 'Chancia'),
+								 '39102', df['code_postal'])
+	df['code_postal'] = nd.where(
+		(df['Libellé du département'] == 'Jura') & (df['Libellé de la commune'] == 'Lavancia-Epercy'), '39283',
+		df['code_postal'])
+	return df
+
+
+def prepare_df(path):
 	df = pd.read_csv(path)
 
 	df = df.dropna()
@@ -30,14 +50,21 @@ def prepare_df(path):
 	df.rename(columns=renamed_cols, inplace=True)
 	df = ammend_jura_ain(df)
 	df['Code du département'] = df['code_postal'].apply(lambda x: str(x)[:2])
-	df = df.sort_values(by='Code du département')
+
 	df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
 	df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
+	keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département','dénomination complète',
+					'Libellé de la commune', '% Abs/Ins', 'Inscrits',
+					'Abstentions', 'Adresse complète']
+	df = df[keep_columns]
+	df_with_paris = add_paris(df)
+	df_with_paris = df_with_paris.sort_values(by='Code du département')
 
-	return df
+	return df_with_paris
 
 def francemetropole(path):
 	df = prepare_df(path)
+	#df = add_paris(df)
 	keep_columns = ['longitude','latitude','Libellé de la commune','% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département', 'Adresse complète']
 	df_keep_columns = df[keep_columns]
 	res = KeplerGl(height=500, data={"data_1": df_keep_columns}, config=_mapconfig)
@@ -49,6 +76,7 @@ def liste_communes(departements):
 	resu = {}
 	path = './processed/abstentions.csv'
 	df = prepare_df(path)
+	#df = add_paris(df)
 
 	for i in departements:
 		dep = i.split(' ')
@@ -61,6 +89,7 @@ def liste_communes(departements):
 def all_departements():
 	path = './processed/abstentions.csv'
 	df = prepare_df(path)
+	#df = add_paris(df)
 	res = list(df['dénomination complète'].unique())
 	return res
 
@@ -68,6 +97,7 @@ def communes_for_map( communes_liste):
 
 	path = './processed/abstentions.csv'
 	df = prepare_df(path)
+	#df = add_paris(df)
 	
 	deps_communes = list()
 	for i in communes_liste:
@@ -85,6 +115,7 @@ def communes_for_map( communes_liste):
 def communes_for_map_a(communes_liste):
 	path = './processed/abstentions.csv'
 	df = prepare_df(path)
+	#df = add_paris(df)
 	deps_communes = list()
 	for i in communes_liste:
 		new = i.split('(')
