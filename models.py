@@ -82,6 +82,7 @@ def liste_communes(departements):
 		dep = i.split(' ')
 		communes = list(df[df['Libellé du département']==dep[0]]['Libellé de la commune'].unique() )
 		communes = [i + ' '+ dep[1] for i in communes]
+		communes.insert(0, "Département entier {}".format(dep[1]))
 		resu[i] = communes
 
 	return resu
@@ -93,28 +94,29 @@ def all_departements():
 	res = list(df['dénomination complète'].unique())
 	return res
 
-def communes_for_map( communes_liste):
-
-	path = './processed/abstentions.csv'
-	df = prepare_df(path)
-	#df = add_paris(df)
-	
-	deps_communes = list()
-	for i in communes_liste:
-		new = i.split(' ')
-		new[1] = new[1].strip('()')
-		deps_communes.append(new)
-
-	deps_communes = nd.array(deps_communes)
-	df_choix = pd.DataFrame(data = deps_communes, columns=['Libellé de la commune', 'Code du département'])
-	filtered_df = pd.merge(df, df_choix, left_on = ['Code du département', 'Libellé de la commune'], right_on = ['Code du département', 'Libellé de la commune'])
-	res = KeplerGl(height=500, data={"data_1": filtered_df}, config = _mapconfig)
-	return res
+# def communes_for_map( communes_liste):
+#
+# 	path = './processed/abstentions.csv'
+# 	df = prepare_df(path)
+# 	#df = add_paris(df)
+#
+# 	deps_communes = list()
+# 	for i in communes_liste:
+# 		new = i.split(' ')
+# 		new[1] = new[1].strip('()')
+# 		deps_communes.append(new)
+#
+# 	deps_communes = nd.array(deps_communes)
+# 	df_choix = pd.DataFrame(data = deps_communes, columns=['Libellé de la commune', 'Code du département'])
+# 	filtered_df = pd.merge(df, df_choix, left_on = ['Code du département', 'Libellé de la commune'], right_on = ['Code du département', 'Libellé de la commune'])
+# 	res = KeplerGl(height=500, data={"data_1": filtered_df}, config = _mapconfig)
+# 	return res
 
 
 def communes_for_map_a(communes_liste):
 	path = './processed/abstentions.csv'
 	df = prepare_df(path)
+	list_dep_entier = list()
 	#df = add_paris(df)
 	deps_communes = list()
 	for i in communes_liste:
@@ -123,14 +125,26 @@ def communes_for_map_a(communes_liste):
 			return 'Problem in commune name'
 		new[0] = new[0].strip(' ')
 		new[-1] = new[-1].strip('( )')
+
+		if 'Département entier' in new[0]:
+			departement_code = pd.DataFrame(data=[new[-1]], columns=['Code du département'])
+			departement_entier = pd.merge(df, departement_code, left_on=['Code du département'],
+						   right_on=['Code du département'])
+			list_dep_entier.append(departement_entier)
+			continue
 		deps_communes.append(new)
 
-	deps_communes = nd.array(deps_communes)
+	#deps_communes = nd.array(deps_communes) # returns error if deps_communes empty
 	print("VOILA deps_communes   {}".format(deps_communes))
 	df_choix = pd.DataFrame(data=deps_communes, columns=['Libellé de la commune', 'Code du département'])
 	print("VOILA DF_CHOIX   {}".format(df_choix))
 	filtered_df = pd.merge(df, df_choix, left_on=['Code du département', 'Libellé de la commune'],
 						   right_on=['Code du département', 'Libellé de la commune'])
+	if len(list_dep_entier) > 0:
+		#filtered_df
+		for df_departement in list_dep_entier:
+			filtered_df = filtered_df.append(df_departement)
+
 	res = KeplerGl(height=500, data={"data_1": filtered_df}, config=_mapconfig)
 	return res
 
