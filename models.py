@@ -74,8 +74,7 @@ def francemetropole(path):
 def liste_communes(departements):
 	#create dictionary with all communes for entered departements
 	resu = {}
-	path = './processed/abstentions.csv'
-	df = prepare_df(path)
+	df = prepare_df(path_abstentions)
 	#df = add_paris(df)
 
 	for i in departements:
@@ -88,34 +87,14 @@ def liste_communes(departements):
 	return resu
 
 def all_departements():
-	path = './processed/abstentions.csv'
-	df = prepare_df(path)
+	df = prepare_df(path_abstentions)
 	#df = add_paris(df)
 	res = list(df['dénomination complète'].unique())
 	return res
 
-# def communes_for_map( communes_liste):
-#
-# 	path = './processed/abstentions.csv'
-# 	df = prepare_df(path)
-# 	#df = add_paris(df)
-#
-# 	deps_communes = list()
-# 	for i in communes_liste:
-# 		new = i.split(' ')
-# 		new[1] = new[1].strip('()')
-# 		deps_communes.append(new)
-#
-# 	deps_communes = nd.array(deps_communes)
-# 	df_choix = pd.DataFrame(data = deps_communes, columns=['Libellé de la commune', 'Code du département'])
-# 	filtered_df = pd.merge(df, df_choix, left_on = ['Code du département', 'Libellé de la commune'], right_on = ['Code du département', 'Libellé de la commune'])
-# 	res = KeplerGl(height=500, data={"data_1": filtered_df}, config = _mapconfig)
-# 	return res
-
 
 def communes_for_map_a(communes_liste):
-	path = './processed/abstentions.csv'
-	df = prepare_df(path)
+	df = prepare_df(path_abstentions)
 	list_dep_entier = list()
 	#df = add_paris(df)
 	deps_communes = list()
@@ -302,7 +281,9 @@ _mapconfig = {
 		  "longitude": 0.6931065883195648,
 		  "pitch": 0,
 		  "zoom": 5.279017859889528,
-		  "isSplit": False
+		  "isSplit": False,
+			"mapboxApiAccessToken": "pk.eyJ1Ijoid2lsbGJheWUiLCJhIjoiY2xwMDdjcGMxMDV4NTJscW80YTVudnQ0eCJ9.QyXlCq0H6T4YkSLbI0seDw"
+
 		},
 		"mapStyle": {
 		  "styleType": "dark",
@@ -314,14 +295,16 @@ _mapconfig = {
 			"building": True,
 			"water": True,
 			"land": True,
-			"3d building": False
+			"3d building": False,
+			"mapboxApiAccessToken" : "pk.eyJ1Ijoid2lsbGJheWUiLCJhIjoiY2xwMDdjcGMxMDV4NTJscW80YTVudnQ0eCJ9.QyXlCq0H6T4YkSLbI0seDw"
 		  },
 		  "threeDBuildingColor": [
 			9.665468314072013,
 			17.18305478057247,
 			31.1442867897876
 		  ],
-		  "mapStyles": {}
+		  "mapStyles": {},
+
 		}
 	  }
 	}
