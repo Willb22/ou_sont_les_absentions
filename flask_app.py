@@ -4,9 +4,9 @@ from models import  pd, nd, liste_communes, all_departements, communes_for_map_a
 #from models_geojson import  pd, nd, map_1, liste_communes, all_departements, communes_for_map
 import json
 import git
-app = Flask(__name__, template_folder= "./processed/html_files/")
+flask_app = Flask(__name__, template_folder= "./processed/html_files/")
 
-@app.route('/update_server', methods=['POST'])
+@flask_app.route('/update_server', methods=['POST'])
 def webhook():
     if request.method == 'POST':
         repo = git.Repo('/home/ousontlesabstentions/mysite')
@@ -16,27 +16,27 @@ def webhook():
     else:
         return 'Wrong event type', 400
 
-@app.route('/', methods = ['GET'])
+@flask_app.route('/', methods = ['GET'])
 def trial():
 
 	return render_template('index.html')
 
 
-@app.route('/france2017', methods=['GET'])
+@flask_app.route('/france2017', methods=['GET'])
 def whyname():
 	return render_template('./france_2017/menu.html')
 
-@app.route('/france2017/paris75', methods=['GET'])
+@flask_app.route('/france2017/paris75', methods=['GET'])
 def whyname1():
 	return render_template('./france_2017/paris.html')
 
-@app.route('/france2017/francemetropole', methods=['GET'])
+@flask_app.route('/france2017/francemetropole', methods=['GET'])
 def whyname2():
 
 	map_to_go = francemetropole(path_abstentions)
 	return map_to_go._repr_html_()
 
-@app.route('/france2017/formulaire', methods = ['GET'])
+@flask_app.route('/france2017/formulaire', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
 
@@ -44,14 +44,14 @@ def choix_departements():
 	return res
 
 
-@app.route('/departements', methods = ['GET'])
+@flask_app.route('/departements', methods = ['GET'])
 def create_form_communes():
 	deps = request.args.getlist('choix_des_departements[]')
 	deps_communes = liste_communes(deps)
 	res = render_template('choi_communes.html', name = deps_communes)
 	return res
 
-@app.route('/generatemap', methods = ['GET'])
+@flask_app.route('/generatemap', methods = ['GET'])
 def test_map():
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
@@ -63,4 +63,4 @@ def test_map():
     
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
-    app.run(threaded=True, port=5000)
+    flask_app.run(threaded=True, port=5000)
