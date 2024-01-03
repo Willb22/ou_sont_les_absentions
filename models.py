@@ -1,11 +1,12 @@
 # -*- coding: latin-1 -*-
 import numpy as nd
 import pandas as pd
-#import geopandas as gpd
+import os
 from keplergl import KeplerGl
 
-path_abstentions = './processed/abstentions.csv'
-path_paris = './processed/csv_files/geo_paris.csv'
+current_directory = os.getcwd()
+path_abstentions = f'{current_directory}/processed/abstentions.csv'
+path_paris = f'{current_directory}/processed/csv_files/geo_paris.csv'
 
 class Integrate_cities:
 	def __int__(self):
