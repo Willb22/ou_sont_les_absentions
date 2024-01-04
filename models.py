@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from keplergl import KeplerGl
 
-current_directory = os.getcwd()
+current_directory = os.path.dirname(__file__)
 path_abstentions = f'{current_directory}/processed/abstentions.csv'
 path_paris = f'{current_directory}/processed/csv_files/geo_paris.csv'
 
