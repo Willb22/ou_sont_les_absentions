@@ -36,19 +36,19 @@ def whyname2():
 	map_to_go = francemetropole(path_abstentions)
 	return map_to_go._repr_html_()
 
-@app.route('/france2017/formulaire', methods = ['GET'])
+@app.route('/france2017/choix_departements', methods = ['GET'])
 def choix_departements():
 	_alldepartements = all_departements()
 
-	res = render_template('formulaire_pers.html', liste = _alldepartements)
+	res = render_template('file_choix_departements.html', liste = _alldepartements)
 	return res
 
 
-@app.route('/departements', methods = ['GET'])
+@app.route('/choix_communes', methods = ['GET'])
 def create_form_communes():
 	deps = request.args.getlist('choix_des_departements[]')
 	deps_communes = liste_communes(deps)
-	res = render_template('choi_communes.html', name = deps_communes)
+	res = render_template('file_choix_communes.html', name = deps_communes)
 	return res
 
 @app.route('/generatemap', methods = ['GET'])
