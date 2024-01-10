@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+<style>
+.dropbtn {
+
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
+
+.dropdown {
+  position: center;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #ddd;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #3e8e41;}
+
+.center {
+  margin: auto;
+  width: 70%;
+
+  padding: 10px;
+}
+
+</style>
+</head>
+
+
+<body>
+
+<!-- This is a comment -->
+<!-- scrip uses chosen library -->
+<h1>Choisissez un ou plusieurs départements</h1>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.jquery.min.js"></script>
+<link href="https://cdn.rawgit.com/harvesthq/chosen/gh-pages/chosen.min.css" rel="stylesheet"/>
+
+
+<script>
+	
+$(document).ready(function () {
+
+    $(".chosen-select").chosen({
+  no_results_text: "Oops, nothing found!"})
+});
+
+</script>
+
+ 
+<!-- "https://elections-pres-france17.herokuapp.com/departements" -->  
+<!-- "http://127.0.0.1:5000/departements" -->  
+  <div class="dropdown">
+    <form action="/france2022/choix_communes" method="get">
+      <select data-placeholder="Choisissez parmi la liste..." multiple class="chosen-select" name="choix_des_departements[]" multiple="multiple">
+
+            <button class="dropbtn">Choisissez lalala</button>
+            <div class="dropdown-content">
+                {% for departement in liste %}
+                <option> {{departement}} </option>
+                {% endfor %}
+            </div>
+
+      </select>
+      <input type="submit" name = "othername">
+
+    </form>
+  </div>
+
+</body>
+</html>
+
