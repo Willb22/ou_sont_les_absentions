@@ -4,6 +4,10 @@ from flask import Flask, request, jsonify, render_template
 from models import process_france2017, process_france2022
 #import os
 import git
+
+from resource import getrusage, RUSAGE_SELF
+print("Peak memory (MiB):", int(getrusage(RUSAGE_SELF).ru_maxrss / 1024))
+
 app = Flask(__name__, template_folder= "./processed/html_files/")
 
 
@@ -112,4 +116,6 @@ def test_map():
     
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
-    app.run(threaded=True, port=5000)
+    #app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
+	app.run(threaded=True, host='0.0.0.0', port=5000)
+

@@ -16,9 +16,11 @@ class Process_data:
 	def __init__(self, path_abstentions, path_paris):
 		self.path_abstentions = path_abstentions
 		self.path_paris = path_paris
+		self.df = self.prepare_df(self.path_abstentions)
 
 	def create_denomination_complete(self, df):
 		df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
+		#self.df['dénomination complète'] = self.df['Libellé du département'] + ' (' + self.df['Code du département'] + ') '
 		return df
 
 
@@ -66,19 +68,19 @@ class Process_data:
 		return df_with_paris
 
 	def francemetropole(self):
-		df = self.prepare_df(self.path_abstentions)
-		#df = add_paris(df)
-		keep_columns = ['longitude','latitude','Libellé de la commune','% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département', 'Adresse complète']
-		df_keep_columns = df[keep_columns]
-		res = KeplerGl(height=500, data={"data_1": df_keep_columns}, config=_mapconfig)
+		#df = self.prepare_df(self.path_abstentions)
+		#df = self.df
+		# keep_columns = ['longitude','latitude','Libellé de la commune','% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département', 'Adresse complète']
+		# df_keep_columns = self.df[keep_columns]
+		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
 		return res
 
 
 	def liste_communes(self, departements):
 		#create dictionary with all communes for entered departements
 		resu = {}
-		df = self.prepare_df(self.path_abstentions)
-		#df = add_paris(df)
+		#df = self.prepare_df(self.path_abstentions)
+		df = self.df
 
 		for i in departements:
 			dep = i.split(' ')
@@ -90,16 +92,16 @@ class Process_data:
 		return resu
 
 	def all_departements(self):
-		df = self.prepare_df(self.path_abstentions)
-		#df = add_paris(df)
+		#df = self.prepare_df(self.path_abstentions)
+		df = self.df
 		res = list(df['dénomination complète'].unique())
 		return res
 
 
 	def communes_for_map(self, communes_liste):
-		df = self.prepare_df(self.path_abstentions)
+		#df = self.prepare_df(self.path_abstentions)
 		list_dep_entier = list()
-		#df = add_paris(df)
+		df = self.df
 		deps_communes = list()
 		for i in communes_liste:
 			new = i.split('(')
