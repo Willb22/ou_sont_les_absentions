@@ -1,7 +1,8 @@
 #/usr/bin/python3
 from flask import Flask, request, jsonify, render_template
 #from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole, path_abstentions
-from models import process_france2017, process_france2022
+from models import process_france2017
+#from models import process_france2022
 #import os
 import git
 
@@ -76,23 +77,32 @@ def test_map2017():
 
 @app.route('/france2022', methods=['GET'])
 def whyname():
-	return render_template('./france_2022/menu.html')
+
+	res = render_template('./france_2022/menu.html')
+	res = render_template('./france_2022/coming_soon.html')
+
+	return res
 
 @app.route('/france2022/paris75', methods=['GET'])
 def whyname1():
-	return render_template('./france_2022/paris.html')
+	res = render_template('./france_2022/paris.html')
+	res = render_template('./france_2022/coming_soon.html')
+	return res
 
 @app.route('/france2022/francemetropole', methods=['GET'])
 def whyname2():
 
 	map_to_go = process_france2022.francemetropole()
-	return map_to_go._repr_html_()
+	res = map_to_go._repr_html_()
+	res = render_template('./france_2022/coming_soon.html')
+	return res
 
 @app.route('/france2022/choix_departements', methods = ['GET'])
 def choix_departements():
 	alldepartements = process_france2022.all_departements()
 
 	res = render_template('france_2022/file_choix_departements.html', liste = alldepartements)
+	res = render_template('./france_2022/coming_soon.html')
 	return res
 
 
@@ -101,6 +111,7 @@ def create_form_communes():
 	deps = request.args.getlist('choix_des_departements[]')
 	deps_communes = process_france2022.liste_communes(deps)
 	res = render_template('france_2022/file_choix_communes.html', name = deps_communes)
+	res = render_template('./france_2022/coming_soon.html')
 	return res
 
 @app.route('/france2022/generatemap', methods = ['GET'])
@@ -108,8 +119,11 @@ def test_map():
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
 	map_to_go = process_france2022.communes_for_map(deps)
+	res = map_to_go._repr_html_()
 
-	return map_to_go._repr_html_()
+	res = render_template('./france_2022/coming_soon.html')
+
+	return res
     
     
     

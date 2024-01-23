@@ -262,7 +262,7 @@ class Process_france2022(Process_data):
 		return df_with_paris
 
 process_france2017 = Process_france2017(path_abstentions_france2017, path_paris_france2017)
-process_france2022 = Process_france2022(path_abstentions_france2022, path_paris_france2022)
+#process_france2022 = Process_france2022(path_abstentions_france2022, path_paris_france2022)
 
 
 colorscheme = [
