@@ -210,7 +210,7 @@ class Process_data:
 			for df_departement in list_dep_entier:
 				filtered_df = filtered_df.append(df_departement)
 		input_dict = filtered_df.to_dict('split')
-		print("VOILA le dictionnaire   {}".format(input_dict) )
+		#print("VOILA le dictionnaire   {}".format(input_dict) )
 		res = KeplerGl(height=500, data={"data_1": input_dict}, config=_mapconfig)
 		return res
 
