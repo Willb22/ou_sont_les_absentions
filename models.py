@@ -5,6 +5,13 @@ import os
 from keplergl import KeplerGl
 
 
+import psycopg2
+from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, select, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.inspection import inspect
+
+database_name = 'ou_sont_les_abstentions'
+
 
 current_directory = os.path.dirname(__file__)
 path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
@@ -17,6 +24,70 @@ class Process_data:
 		self.path_abstentions = path_abstentions
 		self.path_paris = path_paris
 		self.df = self.prepare_df(self.path_abstentions)
+
+	def get_credentials(self):
+		"""
+        Return user, password, host and port for database and table connection
+
+        Parameters
+        ---------
+        Nothing is passed. user, password, host and port are defined within the function
+
+        Returns
+        -------
+        string
+            user, password, host and port
+        """
+		user = 'postgres'
+		# passw = os.environ.get('PASSPOSTGRES')
+		passw = 'mynewpassword'
+		host = '127.0.0.1'
+		port = '5433'
+
+		return user, passw, host, port
+
+	def connect_driver(self):
+		"""
+        Return psycopg2 connection and cursor objects
+
+        Parameters
+        ---------
+        None
+
+        Returns
+        -------
+        connction and cursor class
+        """
+		user, passw, host, port = self.get_credentials()
+
+		# establishing the connection
+		conn = psycopg2.connect(
+			user=user, password=passw, host=host, port=port
+		)
+		conn.autocommit = True
+		# Creating a cursor object using the cursor() method
+		cursor = conn.cursor()
+		return conn, cursor
+
+	def connect_orm(self):
+		"""
+        Return sqlalchemy Engine instance and connection
+
+        Parameters
+        ---------
+        None
+
+        Returns
+        -------
+        sqlalchemy Engine instance and connection
+        """
+		user, passw, host, port = self.get_credentials()
+
+		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
+		engine = create_engine(conn_string)
+		conn_orm = engine.connect()
+		return conn_orm, engine
+
 
 	def create_denomination_complete(self, df):
 		df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
@@ -73,6 +144,8 @@ class Process_data:
 		# keep_columns = ['longitude','latitude','Libellé de la commune','% Abs/Ins', 'Inscrits', 'Abstentions', 'Libellé du département', 'Adresse complète']
 		# df_keep_columns = self.df[keep_columns]
 		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
+		# print(self.df.to_dict())
+		# res = KeplerGl(height=500, data={"data_1": self.df.to_dict()}, config=_mapconfig)
 		return res
 
 
@@ -97,6 +170,14 @@ class Process_data:
 		res = list(df['dénomination complète'].unique())
 		return res
 
+	def query_all_departements(self):
+		conn_orm, db = self.connect_orm()
+		# query = 'f"select * from {table_name};"'
+		query = "select * from france_pres_2017;"
+		# all_table_cols = list(conn_orm.execute(''f"select * from {table_name};"'').keys())
+		all_table_cols = list(conn_orm.execute(text(query)).keys())
+		return 0
+
 
 	def communes_for_map(self, communes_liste):
 		#df = self.prepare_df(self.path_abstentions)
@@ -119,17 +200,18 @@ class Process_data:
 			deps_communes.append(new)
 
 		#deps_communes = nd.array(deps_communes) # returns error if deps_communes empty
-		print("VOILA deps_communes   {}".format(deps_communes))
+		#print("VOILA deps_communes   {}".format(deps_communes))
 		df_choix = pd.DataFrame(data=deps_communes, columns=['Libellé de la commune', 'Code du département'])
-		print("VOILA DF_CHOIX   {}".format(df_choix))
+		#print("VOILA DF_CHOIX   {}".format(df_choix))
 		filtered_df = pd.merge(df, df_choix, left_on=['Code du département', 'Libellé de la commune'],
 							   right_on=['Code du département', 'Libellé de la commune'])
 		if len(list_dep_entier) > 0:
 			#filtered_df
 			for df_departement in list_dep_entier:
 				filtered_df = filtered_df.append(df_departement)
-
-		res = KeplerGl(height=500, data={"data_1": filtered_df}, config=_mapconfig)
+		input_dict = filtered_df.to_dict('split')
+		print("VOILA le dictionnaire   {}".format(input_dict) )
+		res = KeplerGl(height=500, data={"data_1": input_dict}, config=_mapconfig)
 		return res
 
 class Process_france2017(Process_data):
