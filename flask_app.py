@@ -45,12 +45,14 @@ def whyname12017():
 @app.route('/france2017/francemetropole', methods=['GET'])
 def whyname22017():
 
-	map_to_go = process_france2017.francemetropole()
+	#map_to_go = process_france2017.francemetropole()
+	map_to_go = process_france2017.query_francemetropole()
 	return map_to_go._repr_html_()
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
 def choix_departements2017():
-	alldepartements = process_france2017.all_departements()
+	#alldepartements = process_france2017.all_departements()
+	alldepartements = process_france2017.query_all_departements()
 
 	res = render_template('france_2017/file_choix_departements.html', liste = alldepartements)
 	return res
@@ -59,7 +61,8 @@ def choix_departements2017():
 @app.route('/france2017/choix_communes', methods = ['GET'])
 def create_form_communes2017():
 	deps = request.args.getlist('choix_des_departements[]')
-	deps_communes = process_france2017.liste_communes(deps)
+	#deps_communes = process_france2017.liste_communes(deps)
+	deps_communes = process_france2017.query_liste_communes(deps)
 	res = render_template('france_2017/file_choix_communes.html', name = deps_communes)
 	return res
 
@@ -67,7 +70,8 @@ def create_form_communes2017():
 def test_map2017():
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
-	map_to_go = process_france2017.communes_for_map(deps)
+	#map_to_go = process_france2017.communes_for_map(deps)
+	map_to_go = process_france2017.generate_kepler_map(deps)
 
 	return map_to_go._repr_html_()
 
