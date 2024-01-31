@@ -1,21 +1,21 @@
 #/usr/bin/python3
-from flask import Flask, request, jsonify, render_template
-#from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole, path_abstentions
-from models import process_france2017, process_france2022
-#import os
+from flask import Flask, request, render_template
+from models import process_france2017
+#from models import process_france2022
 import git
 
 from resource import getrusage, RUSAGE_SELF
-print("Peak memory (MiB):", int(getrusage(RUSAGE_SELF).ru_maxrss / 1024))
+from datetime import datetime
+
+now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
 
-
-
-# current_directory = os.path.dirname(__file__)
-# path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
-# path_paris_france2017 = f'{current_directory}/processed/csv_files/france_2017/geo_paris.csv'
-# path_abstentions_france2022 = f'{current_directory}/processed/csv_files/france_2022/abstentions.csv'
+def log_process_memory(message):
+    file = open(f"memory_usage_{now}.txt", "a")
+    memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
+    file.write(memory_message)
+    file.close()
 
 
 @app.route('/update_server', methods=['POST'])
@@ -47,6 +47,7 @@ def whyname22017():
 
 	#map_to_go = process_france2017.francemetropole()
 	map_to_go = process_france2017.query_francemetropole()
+	log_process_memory('load france metrople 2017')
 	return map_to_go._repr_html_()
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
