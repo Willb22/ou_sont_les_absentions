@@ -1,13 +1,11 @@
 #/usr/bin/python3
 from flask import Flask, request, render_template
-from models import process_france2017
+from models import process_france2017, now
 #from models import process_france2022
 import git
 
 from resource import getrusage, RUSAGE_SELF
-from datetime import datetime
 
-now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
 

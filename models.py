@@ -3,16 +3,16 @@ import numpy as nd
 import pandas as pd
 import os
 from keplergl import KeplerGl
-
-
+from resource import getrusage, RUSAGE_SELF
 import psycopg2
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct, text, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import registry
 
 database_name = 'ou_sont_les_abstentions'
+from datetime import datetime
 
+now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 
 current_directory = os.path.dirname(__file__)
 path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
@@ -30,7 +30,7 @@ class User:
     pass
 
 
-class Process_data:
+class Table_queries:
 	def __init__(self, path_abstentions, path_paris, table_name):
 		self.path_abstentions = path_abstentions
 		self.path_paris = path_paris
@@ -208,13 +208,11 @@ class Process_data:
 		return resu
 
 	def all_departements(self):
-		#df = self.prepare_df(self.path_abstentions)
 		df = self.df
 		res = list(df['dénomination complète'].unique())
 		return res
 
 	def communes_for_map(self, communes_liste):
-		#df = self.prepare_df(self.path_abstentions)
 		list_dep_entier = list()
 		df = self.df
 		deps_communes = list()
@@ -244,17 +242,13 @@ class Process_data:
 		res = KeplerGl(height=500, data={"data_1": input_dict}, config=_mapconfig)
 		return res
 
-class Process_france2017(Process_data):
+class Queries_france2017(Table_queries):
 	def __init__(self, path_abstentions, path_paris):
 		super().__init__(path_abstentions, path_paris, table_name = 'france_pres_2017')
-
 		self.conn_orm, self.db = self.connect_orm()
-
 		Session = sessionmaker(bind=self.db)
 		self.session = Session()
 		self.define_mapper()
-
-		
 
 
 	def create_dict_for_map(self, list_data, columns):
@@ -263,15 +257,11 @@ class Process_france2017(Process_data):
 		dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
 		return dict_data
 
-
 	def query_francemetropole(self):
 		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Absentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
 		ref_to_cols = [User.__dict__[key] for key in call_col]
-
-		#iter_stm = select(*ref_to_cols).where(User.dénomination_complète.in_(["Puy-de-Dôme (63) ", "Yonne (89) "]))
 		iter_stm = select(*ref_to_cols)
 		data = self.session.execute(iter_stm).all()
-
 		list_data = [list(row) for row in data]
 		dict_data = self.create_dict_for_map(list_data, call_col)
 		res = KeplerGl(height=500, data={"data_1": dict_data}, config=dbmapconfig)
@@ -317,7 +307,6 @@ class Process_france2017(Process_data):
 				data_chunks.extend(data)
 				continue
 			deps_communes.append(new)
-			#iter_stm = select(*ref_to_cols).where(User.Libellé_de_la_commune.in_([new[0]]))
 			iter_stm = select(*ref_to_cols).where(User.Libellé_de_la_commune.in_([new[0]]), User.Code_du_département.in_([new[-1]]))
 			data = self.session.execute(iter_stm).all()
 			data_chunks.extend(data)
@@ -329,7 +318,7 @@ class Process_france2017(Process_data):
 
 
 
-class Process_france2022(Process_data):
+class Queries_france2022(Table_queries):
 
 	def __init__(self, path_absentions, path_paris, table_name):
 		pass
@@ -374,8 +363,8 @@ class Process_france2022(Process_data):
 
 		return df_with_paris
 
-process_france2017 = Process_france2017(path_abstentions_france2017, path_paris_france2017)
-#process_france2022 = Process_france2022(path_abstentions_france2022, path_paris_france2022, table_name='france_pres_2022')
+process_france2017 = Queries_france2017(path_abstentions_france2017, path_paris_france2017)
+#france2022 = Process_france2022(path_abstentions_france2022, path_paris_france2022, table_name='france_pres_2022')
 
 
 colorscheme = [
@@ -389,6 +378,8 @@ colorscheme = [
 
 colorscheme = ['FFFF00', 'FFCC00', 'FF9900', 'FF6600', 'FF3300', 'FF0000']
 colorscheme = ['#f2e600', '#e6cc00', '#d9b300', '#cc9900', '#c08000', '#b36600', '#a64d00', '#993300', '#8d1a00', '#800000']
+colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
+colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','CC0000', '#800000', '#330000']
 
 _mapconfig = {
 	  "version": "v1",
@@ -462,9 +453,9 @@ _mapconfig = {
 				  "name": "Abstentions",
 				  "type": "integer"
 				},
-				"colorScale": "quantile",
+				"colorScale": "quantize",
 				"strokeColorField": None,
-				"strokeColorScale": "quantile",
+				"strokeColorScale": "quantize",
 				"sizeField": {
 				  "name": "Inscrits",
 				  "type": "integer"
