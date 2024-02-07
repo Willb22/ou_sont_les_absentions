@@ -45,7 +45,7 @@ def whyname22017():
 
 	#map_to_go = process_france2017.francemetropole()
 	map_to_go = process_france2017.query_francemetropole()
-	log_process_memory('load france metrople 2017')
+	#log_process_memory('load france metrople 2017')
 	return map_to_go._repr_html_()
 
 @app.route('/france2017/choix_departements', methods = ['GET'])

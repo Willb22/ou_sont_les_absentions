@@ -74,22 +74,21 @@ class Table_queries:
 
 	def get_credentials(self):
 		"""
-        Return user, password, host and port for database and table connection
+		Return user, password, host and port for database and table connection
 
-        Parameters
-        ---------
-        Nothing is passed. user, password, host and port are defined within the function
+		Parameters
+		---------
+		Nothing is passed. user, password, host and port are defined within the function
 
-        Returns
-        -------
-        string
-            user, password, host and port
-        """
+		Returns
+		-------
+		string
+		    user, password, host and port
+		"""
 		user = 'postgres'
-		# passw = os.environ.get('PASSPOSTGRES')
-		passw = 'mynewpassword'
+		passw = os.environ.get('PASSPOSTGRES')
 		host = '127.0.0.1'
-		port = '5433'
+		port = os.environ.get('PORT_POSTGRESQL')
 
 		return user, passw, host, port
 
@@ -377,9 +376,9 @@ colorscheme = [
 					]
 
 colorscheme = ['FFFF00', 'FFCC00', 'FF9900', 'FF6600', 'FF3300', 'FF0000']
-colorscheme = ['#f2e600', '#e6cc00', '#d9b300', '#cc9900', '#c08000', '#b36600', '#a64d00', '#993300', '#8d1a00', '#800000']
-colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
-colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','CC0000', '#800000', '#330000']
+#colorscheme = ['#f2e600', '#e6cc00', '#d9b300', '#cc9900', '#c08000', '#b36600', '#a64d00', '#993300', '#8d1a00', '#800000']
+#colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
+#colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','CC0000', '#800000', '#330000']
 
 _mapconfig = {
 	  "version": "v1",
@@ -453,9 +452,9 @@ _mapconfig = {
 				  "name": "Abstentions",
 				  "type": "integer"
 				},
-				"colorScale": "quantize",
+				"colorScale": "quantile",
 				"strokeColorField": None,
-				"strokeColorScale": "quantize",
+				"strokeColorScale": "quantile",
 				"sizeField": {
 				  "name": "Inscrits",
 				  "type": "integer"

@@ -5,14 +5,14 @@ import numpy as nd
 import psycopg2
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, Float
 from sqlalchemy.orm import sessionmaker
-
+import os
 from resource import getrusage, RUSAGE_SELF
 from datetime import datetime
 
 now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 database_name = 'ou_sont_les_abstentions'
-
-project_directory = '/home/will/Documents/geo_project/Elections-pres-france'
+current_directory = os.path.dirname(__file__)
+project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
 path_abstentions_france2017 = f'{project_directory}/processed/csv_files/france_2017/abstentions.csv'
 path_paris_france2017 = f'{project_directory}/processed/csv_files/france_2017/geo_paris.csv'
@@ -33,10 +33,9 @@ def get_credentials():
         user, password, host and port
     """
     user = 'postgres'
-    #passw = os.environ.get('PASSPOSTGRES')
-    passw = 'mynewpassword'
+    passw = os.environ.get('PASSPOSTGRES')
     host = '127.0.0.1'
-    port = '5433'
+    port = os.environ.get('PORT_POSTGRESQL')
 
     return user, passw, host, port
 
@@ -101,7 +100,7 @@ class Process_data:
         df = pd.read_csv(path_read)
         df = df.dropna()
         df.to_csv(path_write)
-        log_process_memory('default csv read')
+        #log_process_memory('default csv read')
 
     def all_departements(self):
         df = self.prepare_df(self.path_abstentions)
@@ -142,14 +141,14 @@ class Process_france2017(Process_data):
         dict_dtype = {'Code du département':'int8', 'abstentions':'int16', 'inscrits':'int16',
                       'longitude':'float32', 'latitude':'float32', 'code_postal':'object'}
         df = pd.read_csv(path_dropped_na, usecols=cols, dtype=dict_dtype)
-        log_process_memory('tailored csv read')
+        #log_process_memory('tailored csv read')
 
         renamed_cols = {'ville': 'Libellé de la commune', 'abs_ins': '% Abs/Ins', 'abstentions': 'Abstentions',
                         'inscrits': 'Inscrits', 'libelle_du_departement': 'Libellé du département'}
 
         df.rename(columns=renamed_cols, inplace=True)
         df = self.ammend_jura_ain(df)
-        log_process_memory('ammend_jura_ain')
+        #log_process_memory('ammend_jura_ain')
         df['Code du département'] = df['code_postal'].apply(lambda x: str(x)[:2])
         df = self.create_denomination_complete(df)
         df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
@@ -159,7 +158,7 @@ class Process_france2017(Process_data):
                         'Abstentions', 'Adresse complète']
         df = df[keep_columns]
         df_with_paris = self.add_paris(df)
-        log_process_memory('add Paris')
+        #log_process_memory('add Paris')
         df_with_paris = df_with_paris.sort_values(by='Code du département')
         df_with_paris['% Abs/Ins'] = df_with_paris['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
         df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Absentions'})
@@ -168,44 +167,39 @@ class Process_france2017(Process_data):
 
         return df_with_paris
 
-    def create_table_metadata(self):
-
-        conn, cursor = connect_driver()
-        conn_orm, db = connect_orm()
-
-        Session = sessionmaker(bind=db)
-        session = Session()
-        log_process_memory('ORM and driver connection')
-        table_name = 'france_pres_2017'
-
-        all_columns = list(df_2017.columns)
-        columns_for_table = list()
-
-        for col in all_columns:
-            if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-                       'Libellé de la commune',
-                       'Adresse complète']:
-                columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
-
-            elif col in ['Abstentions', 'Inscrits']:
-                columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
-
-            else:
-                columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
-
-        metadata_obj = MetaData()
-        france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
-        metadata_obj.create_all(db)
-
-        return session
 
 if __name__ == '__main__':
     process_france2017 = Process_france2017(path_abstentions_france2017, path_paris_france2017)
     df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
 
-    session = process_france2017.create_table_metadata()
-    log_process_memory('metadata creation')
+    conn, cursor = connect_driver()
+    conn_orm, db = connect_orm()
 
-    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=1000)
-    log_process_memory('ALL completed')
+    Session = sessionmaker(bind=db)
+    session = Session()
+    #log_process_memory('ORM and driver connection')
+    table_name = 'france_pres_2017'
+
+    all_columns = list(df_2017.columns)
+    columns_for_table = list()
+
+    for col in all_columns:
+        if col in ['Code du département', 'Libellé du département', 'dénomination complète',
+                   'Libellé de la commune',
+                   'Adresse complète']:
+            columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
+
+        elif col in ['Abstentions', 'Inscrits']:
+            columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
+
+        else:
+            columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
+
+    metadata_obj = MetaData()
+    france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
+    metadata_obj.create_all(db)
+    #log_process_memory('metadata creation')
+
+    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+    #log_process_memory('ALL completed')
 
