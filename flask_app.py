@@ -42,11 +42,15 @@ def whyname12017():
 
 @app.route('/france2017/francemetropole', methods=['GET'])
 def whyname22017():
-
-	#map_to_go = process_france2017.francemetropole()
-	map_to_go = process_france2017.query_francemetropole()
-	#log_process_memory('load france metrople 2017')
-	return map_to_go._repr_html_()
+	if process_france2017.static_francemetropole:
+		html_map = render_template('france_2017/francemetropole.html')
+		log_process_memory('load france metropole 2017')
+	else:
+		map_to_go = process_france2017.query_francemetropole()
+		html_map=map_to_go._repr_html_(center_map=True)
+		#map_to_go.save_to_html(file_name='./processed/html_files/france_2017/francemetropole.html')
+		#log_process_memory('load france metropole 2017')
+	return html_map
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
 def choix_departements2017():
@@ -72,7 +76,7 @@ def test_map2017():
 	#map_to_go = process_france2017.communes_for_map(deps)
 	map_to_go = process_france2017.generate_kepler_map(deps)
 
-	return map_to_go._repr_html_()
+	return map_to_go._repr_html_(center_map=True)
 
 
 

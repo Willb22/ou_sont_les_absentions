@@ -36,6 +36,7 @@ class Table_queries:
 		self.path_paris = path_paris
 		self.table_name =table_name
 		#self.df = self.prepare_df(self.path_abstentions)
+		self.static_francemetropole=True
 
 
 	def define_mapper(self):
