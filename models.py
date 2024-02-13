@@ -313,6 +313,7 @@ class Queries_france2017(Table_queries):
 		list_data  = [list(row) for row in data_chunks]
 		dict_data = self.create_dict_for_map(list_data, call_col)
 		res = KeplerGl(height=500, data={"data_1": dict_data}, config=dbmapconfig)
+		#res = KeplerGl(height=500, data={"data_1": dict_data}) # default config applied
 		return res
 
 
@@ -375,10 +376,11 @@ colorscheme = [
 					  "#FFC300"
 					]
 
-colorscheme = ['FFFF00', 'FFCC00', 'FF9900', 'FF6600', 'FF3300', 'FF0000']
+#colorscheme = ['FFFF00', 'FFCC00', 'FF9900', 'FF6600', 'FF3300', 'FF0000']
+colorscheme = ['#FFFF00', '#FFCC00', '#FF9900', '#FF6600', '#FF3300', '#FF0000']
 #colorscheme = ['#f2e600', '#e6cc00', '#d9b300', '#cc9900', '#c08000', '#b36600', '#a64d00', '#993300', '#8d1a00', '#800000']
 #colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
-#colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','CC0000', '#800000', '#330000']
+colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','#CC0000', '#800000', '#330000']
 
 
 
@@ -391,20 +393,16 @@ dbmapconfig = {
 		  "filters": [],
 		  "layers": [
 			{
-			  "id": "ltrbs46",
+			  "id": "c9y8sgp",
 			  "type": "point",
 			  "config": {
 				"dataId": "data_1",
 				"label": "Point",
-				"color": [
-				  18,
-				  147,
-				  154
-				],
+				"color":[255,203,153],
+			    "highlightColor":[252,242,26,255],
 				"columns": {
 				  "lat": "latitude",
 				  "lng": "longitude",
-				  "altitude": None
 				},
 				"isVisible": True,
 				"visConfig": {
@@ -447,23 +445,23 @@ dbmapconfig = {
 					  0
 					],
 					"anchor": "start",
-					"alignment": "center"
+					"alignment": "center", "outlineWidth":0,"outlineColor":[255,0,0,255],"background":False,"backgroundColor":[0,0,200,255]
 				  }
 				]
 			  },
 			  "visualChannels": {
 				"colorField": {
 				  "name": "Pourcentage Absentions",
-				  "type": "integer"
+				  "type": "float"
 				},
 				"colorScale": "quantile",
-				"strokeColorField": None,
+				"strokeColorField": "Pourcentage Absentions",
 				"strokeColorScale": "quantile",
 				"sizeField": {
 				  "name": "Inscrits",
 				  "type": "integer"
 				},
-				"sizeScale": "sqrt"
+				"sizeScale": "linear"
 			  }
 			}
 		  ],
@@ -527,8 +525,7 @@ dbmapconfig = {
 		  "longitude": 0.6931065883195648,
 		  "pitch": 0,
 		  "zoom": 5.279017859889528,
-		  "isSplit": False,
-			"mapboxApiAccessToken": "pk.eyJ1Ijoid2lsbGJheWUiLCJhIjoiY2xwMDdjcGMxMDV4NTJscW80YTVudnQ0eCJ9.QyXlCq0H6T4YkSLbI0seDw"
+		  "isSplit": False
 
 		},
 		"mapStyle": {
@@ -541,14 +538,14 @@ dbmapconfig = {
 			"building": True,
 			"water": True,
 			"land": True,
-			"3d building": False,
-			"mapboxApiAccessToken" : "pk.eyJ1Ijoid2lsbGJheWUiLCJhIjoiY2xwMDdjcGMxMDV4NTJscW80YTVudnQ0eCJ9.QyXlCq0H6T4YkSLbI0seDw"
+			"3d building": False
 		  },
 		  "threeDBuildingColor": [
 			9.665468314072013,
 			17.18305478057247,
 			31.1442867897876
 		  ],
+		  "backgroundColor":[0,0,0],
 		  "mapStyles": {},
 
 		}

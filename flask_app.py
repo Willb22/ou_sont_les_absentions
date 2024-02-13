@@ -75,7 +75,6 @@ def test_map2017():
 	#res = render_template('choix_communes.html', name = deps)
 	#map_to_go = process_france2017.communes_for_map(deps)
 	map_to_go = process_france2017.generate_kepler_map(deps)
-
 	return map_to_go._repr_html_(center_map=True)
 
 
