@@ -355,7 +355,7 @@ class Queries_france2022(Table_queries):
 		# df = self.ammend_jura_ain(df)
 		df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:]) # remove unwanted '\n'
 
-		df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
+		df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
 
 		df['Adresse complète'] = df['lib_du_b_vote'].map(str) + ' ' + df['Libellé de la commune'].map(str) + ' ' + df['Libellé du département'].map(str)
 
