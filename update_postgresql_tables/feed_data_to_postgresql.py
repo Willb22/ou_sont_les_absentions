@@ -92,7 +92,9 @@ class Process_data:
         self.path_paris = path_paris
 
     def create_denomination_complete(self, df):
-        df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ') '
+        #df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
+        cols = ['Libellé du département', 'Code du département']
+        df['dénomination complète'] = df[cols].apply(lambda row : '{} ({})'.format(*cols), axis=1)
         return df
 
     def default_read(self, path_read, path_write):
