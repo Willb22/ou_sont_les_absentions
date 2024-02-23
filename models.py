@@ -11,10 +11,20 @@ from sqlalchemy.orm import registry
 from datetime import datetime
 from map_configuration import dbmapconfig
 
+import logging
+
 database_name = 'ou_sont_les_abstentions'
 
+now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
-now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+log_filename = f'logs/app_{now}.log'
+os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+logging.basicConfig(level=logging.DEBUG,
+                    filename=log_filename ,
+                    filemode='a',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 
 current_directory = os.path.dirname(__file__)
 path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
@@ -22,11 +32,6 @@ path_paris_france2017 = f'{current_directory}/processed/csv_files/france_2017/ge
 path_abstentions_france2022 = f'{current_directory}/processed/csv_files/france_2022/abstentions.csv'
 path_paris_france2022 = f'{current_directory}/processed/csv_files/france_2022/no_data.csv'
 
-def log_process_memory(message):
-    file = open(f"memory_usage_{now}.txt", "a")
-    memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
-    file.write(memory_message)
-    file.close()
 
 class User:
     pass

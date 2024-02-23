@@ -4,17 +4,17 @@ from models import process_france2017, now
 #from models import process_france2022
 import git
 import gevent.pywsgi
-
+import os
 from resource import getrusage, RUSAGE_SELF
+from models import logging
 
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
 
-def log_process_memory(message):
-    file = open(f"memory_usage_{now}.txt", "a")
-    memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
-    file.write(memory_message)
-    file.close()
+def log_memory_after(message):
+	memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
+	return memory_message
+
 
 
 @app.route('/update_server', methods=['POST'])
@@ -45,12 +45,13 @@ def whyname12017():
 def whyname22017():
 	if process_france2017.static_francemetropole:
 		html_map = render_template('france_2017/francemetropole.html')
-		log_process_memory('load france metropole 2017')
+		#log_process_memory('load france metropole 2017')
+		logging.info(log_memory_after('load france metropole 2017'))
 	else:
 		map_to_go = process_france2017.query_francemetropole()
 		html_map=map_to_go._repr_html_(center_map=True)
 		#map_to_go.save_to_html(file_name='./processed/html_files/france_2017/francemetropole.html')
-		#log_process_memory('load france metropole 2017')
+		logging.info(log_memory_after('load france metropole 2017'))
 	return html_map
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
