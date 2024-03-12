@@ -1,22 +1,19 @@
 #/usr/bin/python3
-from flask import Flask, request, jsonify, render_template
-#from models import  pd, nd, liste_communes, all_departements, communes_for_map_a, francemetropole, path_abstentions
-from models import process_france2017
+from flask import Flask, request, render_template
+from models import process_france2017, now
 #from models import process_france2022
-#import os
 import git
 
 from resource import getrusage, RUSAGE_SELF
-print("Peak memory (MiB):", int(getrusage(RUSAGE_SELF).ru_maxrss / 1024))
+
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
 
-
-
-# current_directory = os.path.dirname(__file__)
-# path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
-# path_paris_france2017 = f'{current_directory}/processed/csv_files/france_2017/geo_paris.csv'
-# path_abstentions_france2022 = f'{current_directory}/processed/csv_files/france_2022/abstentions.csv'
+def log_process_memory(message):
+    file = open(f"memory_usage_{now}.txt", "a")
+    memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
+    file.write(memory_message)
+    file.close()
 
 
 @app.route('/update_server', methods=['POST'])
@@ -45,13 +42,20 @@ def whyname12017():
 
 @app.route('/france2017/francemetropole', methods=['GET'])
 def whyname22017():
-
-	map_to_go = process_france2017.francemetropole()
-	return map_to_go._repr_html_()
+	if process_france2017.static_francemetropole:
+		html_map = render_template('france_2017/francemetropole.html')
+		log_process_memory('load france metropole 2017')
+	else:
+		map_to_go = process_france2017.query_francemetropole()
+		html_map=map_to_go._repr_html_(center_map=True)
+		#map_to_go.save_to_html(file_name='./processed/html_files/france_2017/francemetropole.html')
+		#log_process_memory('load france metropole 2017')
+	return html_map
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
 def choix_departements2017():
-	alldepartements = process_france2017.all_departements()
+	#alldepartements = process_france2017.all_departements()
+	alldepartements = process_france2017.query_all_departements()
 
 	res = render_template('france_2017/file_choix_departements.html', liste = alldepartements)
 	return res
@@ -60,7 +64,8 @@ def choix_departements2017():
 @app.route('/france2017/choix_communes', methods = ['GET'])
 def create_form_communes2017():
 	deps = request.args.getlist('choix_des_departements[]')
-	deps_communes = process_france2017.liste_communes(deps)
+	#deps_communes = process_france2017.liste_communes(deps)
+	deps_communes = process_france2017.query_liste_communes(deps)
 	res = render_template('france_2017/file_choix_communes.html', name = deps_communes)
 	return res
 
@@ -68,19 +73,18 @@ def create_form_communes2017():
 def test_map2017():
 	deps = request.args.getlist('choix_des_communes[]')
 	#res = render_template('choix_communes.html', name = deps)
-	map_to_go = process_france2017.communes_for_map(deps)
-
-	return map_to_go._repr_html_()
+	#map_to_go = process_france2017.communes_for_map(deps)
+	map_to_go = process_france2017.generate_kepler_map(deps)
+	#map_to_go.save_to_html(file_name='./processed/html_files/france_2017/paris.html', center_map=True)
+	return map_to_go._repr_html_(center_map=True)
 
 
 
 
 @app.route('/france2022', methods=['GET'])
 def whyname():
-
 	res = render_template('./france_2022/menu.html')
 	res = render_template('./france_2022/coming_soon.html')
-
 	return res
 
 @app.route('/france2022/paris75', methods=['GET'])
@@ -117,10 +121,8 @@ def create_form_communes():
 @app.route('/france2022/generatemap', methods = ['GET'])
 def test_map():
 	deps = request.args.getlist('choix_des_communes[]')
-	#res = render_template('choix_communes.html', name = deps)
 	map_to_go = process_france2022.communes_for_map(deps)
 	res = map_to_go._repr_html_()
-
 	res = render_template('./france_2022/coming_soon.html')
 
 	return res
