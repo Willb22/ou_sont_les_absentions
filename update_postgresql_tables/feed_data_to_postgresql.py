@@ -1,5 +1,4 @@
 import pandas as pd
-import dask.dataframe as dd
 import numpy as nd
 
 import psycopg2
@@ -11,6 +10,7 @@ from datetime import datetime
 
 now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 database_name = 'ou_sont_les_abstentions'
+
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
