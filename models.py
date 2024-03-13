@@ -143,7 +143,7 @@ class Table_queries:
 		user, passw, host, port = self.get_credentials(self.query_aws_table)
 
 		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
-		engine = create_engine(conn_string)
+		engine = create_engine(conn_string, pool_size=42)
 		conn_orm = engine.connect()
 		return conn_orm, engine
 
@@ -258,7 +258,7 @@ class Queries_france2017(Table_queries):
 	def __init__(self, path_abstentions, path_paris, query_aws_table):
 		super().__init__(path_abstentions, path_paris, table_name = 'france_pres_2017', query_aws_table=query_aws_table)
 		self.conn_orm, self.db = self.connect_orm()
-		Session = sessionmaker(bind=self.db)
+		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 		self.define_mapper()
 
