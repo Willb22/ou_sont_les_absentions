@@ -10,6 +10,7 @@ from models import logging
 
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
+production_wsgi_server = True
 
 def log_memory_after(message):
 	memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
@@ -137,6 +138,10 @@ if __name__ == '__main__':
     #app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
 	#app.run(threaded=True, host='0.0.0.0', port=5000)
 	#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
-	app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 443), app, keyfile='key.pem', certifile='cert.pem')
-	app_server.serve_forever()
+	if production_wsgi_server:
+		app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 443), app, keyfile='key.pem', certfile='cert.pem')
+		app_server.serve_forever()
+	else:
+		app.run(threaded=True, host='0.0.0.0', port=5000, debug=True)
+
 

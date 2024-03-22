@@ -13,7 +13,8 @@ from map_configuration import dbmapconfig
 
 import logging
 
-database_name = 'ou_sont_les_abstentions'
+#database_name = 'ou_sont_les_abstentions'
+database_name = 'practice_sql_les_abstentions'
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
@@ -374,6 +375,6 @@ class Queries_france2022(Table_queries):
 
 		return df_with_paris
 
-process_france2017 = Queries_france2017(path_abstentions_france2017, path_paris_france2017, query_aws_table=True)
+process_france2017 = Queries_france2017(path_abstentions_france2017, path_paris_france2017, query_aws_table=False)
 #france2022 = Process_france2022(path_abstentions_france2022, path_paris_france2022, table_name='france_pres_2022')
 

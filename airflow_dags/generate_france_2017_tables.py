@@ -1,15 +1,25 @@
 import pandas as pd
 import numpy as nd
+from airflow import DAG
+from airflow.decorators import task
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import get_current_context
 
 import psycopg2
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, Float
 from sqlalchemy.orm import sessionmaker
+
+from sqlalchemy.inspection import inspect
+import logging
+import traceback
+
 import os
 from resource import getrusage, RUSAGE_SELF
 from datetime import datetime
 
 now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-database_name = 'ou_sont_les_abstentions'
+#database_name = 'ou_sont_les_abstentions'
+database_name ='practice_sql_les_abstentions'
 
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -18,6 +28,9 @@ path_abstentions_france2017 = f'{project_directory}/processed/csv_files/france_2
 path_paris_france2017 = f'{project_directory}/processed/csv_files/france_2017/geo_paris.csv'
 path_abstentions_france2022 = f'{project_directory}/processed/csv_files/france_2022/abstentions.csv'
 path_paris_france2022 = f'{project_directory}/processed/csv_files/france_2022/no_data.csv'
+
+logger = logging.getLogger("airflow.task")
+
 
 def get_credentials():
     """
@@ -94,7 +107,9 @@ class Process_data:
     def create_denomination_complete(self, df):
         #df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
         cols = ['Libellé du département', 'Code du département']
-        df['dénomination complète'] = df[cols].apply(lambda row : '{} ({})'.format(*cols), axis=1)
+        #df['dénomination complète'] = df[cols].apply(lambda row : '{} ({})'.format(*cols), axis=1) # pandas 1.5
+        #df['dénomination complète'] = df[cols].agg('-'.join, axis=1)
+        df['dénomination complète']=df.apply(lambda x:'%s (%s)' % (x['Libellé du département'],x['Code du département']),axis=1) # pandas 2.1 for airflow
         return df
 
     def default_read(self, path_read, path_write):
@@ -122,7 +137,8 @@ class Process_france2017(Process_data):
         paris_keep_columns.rename(columns=renamed_cols, inplace=True)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        df = df.append(paris_keep_columns)
+        #df = df.append(paris_keep_columns)
+        df = pd.concat([df, paris_keep_columns], ignore_index=True) # pandas 2 for airflow2
         return df
 
     def ammend_jura_ain(self, df):
@@ -169,39 +185,50 @@ class Process_france2017(Process_data):
 
         return df_with_paris
 
+with DAG(dag_id="ousontlesabstentions_generate_tables", start_date=datetime(2024, 3, 19), schedule="0 0 * * *") as dag:
 
-if __name__ == '__main__':
-    process_france2017 = Process_france2017(path_abstentions_france2017, path_paris_france2017)
-    df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
+    # Tasks are represented as operators
+    #hello = BashOperator(task_id="hello", bash_command="echo hello")
 
-    conn, cursor = connect_driver()
-    conn_orm, db = connect_orm()
+    @task(task_id="task_france_2017_update_table")
+    def france_2017_update_table():
 
-    Session = sessionmaker(bind=db)
-    session = Session()
-    #log_process_memory('ORM and driver connection')
-    table_name = 'france_pres_2017'
+        process_france2017 = Process_france2017(path_abstentions_france2017, path_paris_france2017)
+        df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
 
-    all_columns = list(df_2017.columns)
-    columns_for_table = list()
+        conn, cursor = connect_driver()
+        conn_orm, db = connect_orm()
 
-    for col in all_columns:
-        if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-                   'Libellé de la commune',
-                   'Adresse complète']:
-            columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
+        Session = sessionmaker(bind=db)
+        session = Session()
+        #log_process_memory('ORM and driver connection')
+        table_name = 'france_pres_2017'
 
-        elif col in ['Abstentions', 'Inscrits']:
-            columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
+        all_columns = list(df_2017.columns)
+        columns_for_table = list()
 
-        else:
-            columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
+        for col in all_columns:
+            if col in ['Code du département', 'Libellé du département', 'dénomination complète',
+                       'Libellé de la commune',
+                       'Adresse complète']:
+                columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
 
-    metadata_obj = MetaData()
-    france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
-    metadata_obj.create_all(db)
-    #log_process_memory('metadata creation')
+            elif col in ['Abstentions', 'Inscrits']:
+                columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
 
-    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
-    #log_process_memory('ALL completed')
+            else:
+                columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
+
+        metadata_obj = MetaData()
+        france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
+        metadata_obj.create_all(db)
+        #log_process_memory('metadata creation')
+        logger.info('metadata creation')
+
+        df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+        #log_process_memory('ALL completed')
+        logger.info('ALL completed')
+
+
+    france_2017_update_table()
 
