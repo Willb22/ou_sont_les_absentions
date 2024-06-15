@@ -12,5 +12,4 @@ https://ousontlesabstentions.org
 
 python flask_app.py`
 
-
 Then navigate to localhost on any web browser
