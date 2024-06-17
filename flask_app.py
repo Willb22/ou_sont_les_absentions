@@ -136,6 +136,7 @@ if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
     #app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
 	#app.run(threaded=True, host='0.0.0.0', port=5000)
-	app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
+	#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
+	app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 443), app, keyfile='key.pem', certfile='cert.pem')
 	app_server.serve_forever()
 
