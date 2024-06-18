@@ -1,6 +1,7 @@
 #/usr/bin/python3
 from flask import Flask, request, render_template
 from models import process_france2017, now
+from db_connections import log_memory_after
 #from models import process_france2022
 import git
 import gevent.pywsgi
@@ -11,9 +12,6 @@ from models import logging
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
 production_wsgi_server = False
-def log_memory_after(message):
-	memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
-	return memory_message
 
 
 
