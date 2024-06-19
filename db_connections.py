@@ -5,7 +5,7 @@ from sqlalchemy.orm import registry
 import os
 import sys
 from resource import getrusage, RUSAGE_SELF
-from config import configurations
+from config import configurations, logging, now
 
 
 def log_memory_after(message):
@@ -18,9 +18,46 @@ class User:
     pass
 
 
+#
+# try:
+#         # establishing the connection
+#         conn = psycopg2.connect(
+#             database="postgres", user='postgres', password='put_password_here', host='Localhost', port='5432'
+#         )
+#         conn.autocommit = True
+#
+#         # Creating a cursor object using the cursor() method
+#         cursor = conn.cursor()
+#         sql = '''select exists(SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('db_name'))''';
+#
+#         # Creating a database
+#         cursor.execute(sql)
+#         checktruth = cursor.fetchall()
+#         truthchecked = checktruth[0]
+#         checked = str(truthchecked[0])
+#
+#
+#         if checked == "False":
+#             # Preparing query to create a database
+#             sql = '''CREATE database db_name ''';
+#             cursor.execute(sql)
+#
+#     except(Exception, psycopg2.Error) as error:
+#         messagebox.showerror("error", f"Failed to create db_name!\n{error}", parent=self.root)
+#
+#     finally:
+#         ####closing database connection.
+#         if conn:
+#             cursor.close()
+#             conn.close()
+
+
+
+
+
 class Connectdb:
 	def __init__(self, database_name, query_aws_table):
-		self.query_aws_table=query_aws_table
+		self.query_aws_table = query_aws_table
 		self.database_name = database_name
 
 	def get_credentials(self, use_aws):
@@ -69,7 +106,33 @@ class Connectdb:
 		conn.autocommit = True
 		# Creating a cursor object using the cursor() method
 		cursor = conn.cursor()
+
 		return conn, cursor
+
+	def check_database_exists(self, conn, cursor):
+		"""
+        Return Boolean
+
+        Parameters
+        ---------
+        String
+
+        Returns
+        -------
+        Boolean
+        """
+		#conn, cursor = self.connect_driver()
+		check_exists = ''f"select exists( SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('{self.database_name}'));"''
+		cursor.execute(check_exists)
+		dbExists = cursor.fetchone()[0]
+
+		return dbExists
+	def create_db(self, cursor):
+		logging.info(f"Attempting to create Database {self.database_name}........")
+		command = ''f'CREATE database {self.database_name};'''
+		# Creating a database
+		cursor.execute(command)
+		logging.info(f"Database {self.database_name} created successfully........")
 
 	def connect_orm(self):
 		"""
@@ -84,7 +147,6 @@ class Connectdb:
         sqlalchemy Engine instance and connection
         """
 		user, passw, host, port = self.get_credentials(self.query_aws_table)
-
 		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
 		engine = create_engine(conn_string, pool_size=42)
 		conn_orm = engine.connect()

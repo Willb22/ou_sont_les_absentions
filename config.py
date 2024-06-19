@@ -1,4 +1,17 @@
 import yaml
+import logging
+from datetime import datetime
+import os
+
+now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+log_filename = f'logs/app_{now}.log'
+os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+logging.basicConfig(level=logging.DEBUG,
+                    filename=log_filename ,
+                    filemode='a',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 with open('dev_config.yaml', 'r') as file:
 		configurations = yaml.safe_load(file)
 

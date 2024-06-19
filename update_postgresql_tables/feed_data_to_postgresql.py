@@ -15,10 +15,11 @@ def allow_imports():
         sys.path.append(parent_directory)
 allow_imports()
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
+from config import configurations, logging, now
 
 #connect_database = Connectdb(database_name=database_name, query_aws_table=False)
 
-now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+#now = datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
@@ -116,6 +117,9 @@ if __name__ == '__main__':
     df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
 
     conn, cursor = process_france2017.connect_driver()
+    dbExists = process_france2017.check_database_exists(conn, cursor)
+    if dbExists is False:
+        process_france2017.create_db(cursor)
     conn_orm, db = process_france2017.connect_orm()
 
     Session = sessionmaker(bind=db)

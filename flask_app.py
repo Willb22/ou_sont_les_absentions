@@ -1,6 +1,6 @@
 #/usr/bin/python3
 from flask import Flask, request, render_template
-from models import process_france2017, now
+from models import process_france2017
 from db_connections import log_memory_after
 #from models import process_france2022
 import git
@@ -8,7 +8,7 @@ import gevent.pywsgi
 import os
 from resource import getrusage, RUSAGE_SELF
 from models import logging
-from config import configurations
+from config import configurations, logging, now
 
 
 app = Flask(__name__, template_folder= "./processed/html_files/")

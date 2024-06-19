@@ -11,19 +11,12 @@ from sqlalchemy.orm import registry
 from datetime import datetime
 from config import dbmapconfig
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
-import logging
+from config import configurations, logging, now
+
 print(f'DATABSE is {database_name}')
 
 
-now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
-log_filename = f'logs/app_{now}.log'
-os.makedirs(os.path.dirname(log_filename), exist_ok=True)
-logging.basicConfig(level=logging.DEBUG,
-                    filename=log_filename ,
-                    filemode='a',
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 current_directory = os.path.dirname(__file__)
