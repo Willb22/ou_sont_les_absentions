@@ -1,3 +1,9 @@
+import yaml
+with open('dev_config.yaml', 'r') as file:
+		configurations = yaml.safe_load(file)
+
+print(configurations)
+
 
 colorscheme = [
 					  "#5A1846",

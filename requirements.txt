@@ -8,3 +8,4 @@ pyOpenSSL==23.3.0
 psycopg2==2.9.9
 SQLAlchemy==2.0.25
 gevent==24.2.1
+PyYAML==6.0.1

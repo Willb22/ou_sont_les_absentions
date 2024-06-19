@@ -8,11 +8,12 @@ import gevent.pywsgi
 import os
 from resource import getrusage, RUSAGE_SELF
 from models import logging
+from config import configurations
 
 
 app = Flask(__name__, template_folder= "./processed/html_files/")
-production_wsgi_server = False
-
+production_wsgi_server = configurations['web_deployment']['production_wsgi_server']
+port = configurations['web_deployment']['port']
 
 
 @app.route('/update_server', methods=['POST'])
@@ -136,8 +137,8 @@ if __name__ == '__main__':
 	#app.run(threaded=True, host='0.0.0.0', port=5000)
 	#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
 	if production_wsgi_server:
-		app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 443), app, keyfile='key.pem', certfile='cert.pem')
+		app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', port), app, keyfile='key.pem', certfile='cert.pem')
 		app_server.serve_forever()
 	else:
-		app.run(threaded=True, host='0.0.0.0', port=5000, debug=True)
+		app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
 

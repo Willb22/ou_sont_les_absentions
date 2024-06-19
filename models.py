@@ -9,10 +9,10 @@ from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, In
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import registry
 from datetime import datetime
-from map_configuration import dbmapconfig
+from config import dbmapconfig
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
 import logging
-
+print(f'DATABSE is {database_name}')
 
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
