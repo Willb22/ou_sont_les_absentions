@@ -18,43 +18,6 @@ class User:
     pass
 
 
-#
-# try:
-#         # establishing the connection
-#         conn = psycopg2.connect(
-#             database="postgres", user='postgres', password='put_password_here', host='Localhost', port='5432'
-#         )
-#         conn.autocommit = True
-#
-#         # Creating a cursor object using the cursor() method
-#         cursor = conn.cursor()
-#         sql = '''select exists(SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = lower('db_name'))''';
-#
-#         # Creating a database
-#         cursor.execute(sql)
-#         checktruth = cursor.fetchall()
-#         truthchecked = checktruth[0]
-#         checked = str(truthchecked[0])
-#
-#
-#         if checked == "False":
-#             # Preparing query to create a database
-#             sql = '''CREATE database db_name ''';
-#             cursor.execute(sql)
-#
-#     except(Exception, psycopg2.Error) as error:
-#         messagebox.showerror("error", f"Failed to create db_name!\n{error}", parent=self.root)
-#
-#     finally:
-#         ####closing database connection.
-#         if conn:
-#             cursor.close()
-#             conn.close()
-
-
-
-
-
 class Connectdb:
 	def __init__(self, database_name, query_aws_table):
 		self.query_aws_table = query_aws_table

@@ -47,7 +47,7 @@ class Table_queries(Connectdb):
 					   'Libellé du département',
 					   'dénomination complète',
 					   'Libellé de la commune',
-					   'Pourcentage_Absentions',
+					   'Pourcentage_Abstentions',
 					   'Inscrits',
 					   'Abstentions',
 					   'Adresse complète']
@@ -99,7 +99,7 @@ class Queries_france2017(Table_queries):
 		return dict_data
 
 	def query_francemetropole(self):
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Absentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
 		ref_to_cols = [User.__dict__[key] for key in call_col]
 		iter_stm = select(*ref_to_cols)
 		data = self.session.execute(iter_stm).all()
@@ -133,7 +133,7 @@ class Queries_france2017(Table_queries):
 
 	def generate_kepler_map(self, communes_liste):
 		deps_communes = list()
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Absentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
 		ref_to_cols = [User.__dict__[key] for key in call_col]
 		data_chunks = list()
 		for i in communes_liste:

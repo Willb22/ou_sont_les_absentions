@@ -105,9 +105,9 @@ class Process_france2017(Table_inserts):
         df_with_paris = self.add_paris(df)
         df_with_paris = df_with_paris.sort_values(by='Code du département')
         df_with_paris['% Abs/Ins'] = df_with_paris['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
-        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Absentions'})
+        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
         df_with_paris['Abstentions'] = df_with_paris['Abstentions'].astype(int, )
-        df_with_paris['Pourcentage_Absentions'] = df_with_paris['Pourcentage_Absentions'].astype(float, )
+        df_with_paris['Pourcentage_Abstentions'] = df_with_paris['Pourcentage_Abstentions'].astype(float, )
 
         return df_with_paris
 

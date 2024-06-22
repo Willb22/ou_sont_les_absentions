@@ -33,7 +33,7 @@ colorscheme = ['#FFFF00', '#FFCC00', '#FF9900', '#FF6600', '#FF3300', '#FF0000']
 #colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
 #colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','#CC0000', '#800000', '#330000']
 
-#dbmapconfig["config"]["visState"]["interactionConfig"]["tooltip"]["fieldsToShow"]["data_1"][0]["name"] = "Pourcentage Absentions"
+#dbmapconfig["config"]["visState"]["interactionConfig"]["tooltip"]["fieldsToShow"]["data_1"][0]["name"] = "Pourcentage Abstentions"
 dbmapconfig = {
 	  "version": "v1",
 	  "config": {
@@ -99,11 +99,11 @@ dbmapconfig = {
 			  },
 			  "visualChannels": {
 				"colorField": {
-				  "name": "Pourcentage Absentions",
+				  "name": "Pourcentage Abstentions",
 				  "type": "float"
 				},
 				"colorScale": "quantile",
-				"strokeColorField": "Pourcentage Absentions",
+				"strokeColorField": "Pourcentage Abstentions",
 				"strokeColorScale": "quantile",
 				"sizeField": {
 				  "name": "Inscrits",
@@ -119,7 +119,7 @@ dbmapconfig = {
 				"data_1": [
 
 				  {
-					"name": "Pourcentage Absentions",
+					"name": "Pourcentage Abstentions",
 					"format": None
 				  },
 				  {
