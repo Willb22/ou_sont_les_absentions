@@ -5,3 +5,5 @@ web_deployment:
   port: 5000
 query_aws_table:
   False
+france_metropole_static_html:
+  True
