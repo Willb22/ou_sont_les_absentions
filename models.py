@@ -13,7 +13,7 @@ from config import dbmapconfig
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
 from config import configurations, logging, now
 
-print(f'DATABSE is {database_name}')
+logging.info(f'DATABSE is {database_name}')
 
 
 

@@ -15,8 +15,7 @@ logging.basicConfig(level=logging.DEBUG,
 with open('dev_config.yaml', 'r') as file:
 		configurations = yaml.safe_load(file)
 
-print(configurations)
-
+logging.info(f'Loaded configurations from yaml are {configurations} \n')
 
 colorscheme = [
 					  "#5A1846",

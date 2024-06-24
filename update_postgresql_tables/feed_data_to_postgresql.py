@@ -70,7 +70,9 @@ class Process_france2017(Table_inserts):
 
     def join_for_paris(self):
         df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding = "ISO-8859-1", sep =';', decimal =',')
+        logging.info(log_memory_after('read datagouv csv 2017'))
         df_geo_coords = pd.read_csv(self.path_geo_coords)
+        logging.info(log_memory_after('read geo_coords csv 2017'))
         df_paris = df_datagouv_france2017[df_datagouv_france2017['Libellé du département'] == 'Paris']
         df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x: str(x)) + '-' + df_paris[
             'Code de la circonscription'].apply(lambda x: str(x)).apply(lambda x: '0' + x if len(x) < 2 else x) + '_' + \
@@ -155,18 +157,27 @@ class Process_france2017(Table_inserts):
        'Nom', 'Prénom', 'Voix', '% Voix/Ins', '% Voix/Exp', 'Code Insee',
        'Coordonnées', 'Nom Bureau Vote', 'Adresse', 'Code Postal', 'Ville',
        'uniq_bdv']
+        #.tolist()
+        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=0, nrows=0, sep=';').columns
+        logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
         cols_to_read = ['Coordonnées', 'Code du département', 'Département',
          'Commune', 'Inscrits', 'Abstentions', '% Abs/Ins',
          'Adresse', 'Code Postal']
+        col_indices_to_read = [all_csv_cols.index('Coordonnées'), all_csv_cols.index('Code du département'), all_csv_cols.index('Département'),
+                               all_csv_cols.index('Commune'), all_csv_cols.index('Inscrits'), all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins'),
+                               all_csv_cols.index('Adresse'), all_csv_cols.index('Code Postal')]
+        logging.info(f'column indices for read csv opendatasoft 2017 are {col_indices_to_read}')
+        logging.info(log_memory_after('BEFORE read csv opendatasoft 2017'))
 
         dict_dtype = {'Coordonnées':'object', 'Code du département':'object', 'Département':'object',
                       'Commune':'object', 'Abstentions':'int16', 'Inscrits':'int16', '% Abs/Ins':'float32',
                       'Adresse':'object', 'Code Postal':'object'}
 
         #header=0, skiprows=[0,],
-        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=False)
-        df = df.dropna()
+        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=True, usecols=col_indices_to_read)
+        logging.info(log_memory_after('read csv opendatasoft 2017'))
         df = df[cols_to_read]
+        df = df.dropna()
         df['latitude'] = df['Coordonnées'].apply(lambda x: float(x.split(',')[0]) if type(x) is str else x)
         df['longitude'] = df['Coordonnées'].apply(lambda x: float(x.split(',')[1]) if type(x) is str else x)
         df = df.drop('Coordonnées', axis=1)
@@ -250,18 +261,27 @@ class Process_france2022(Table_inserts):
        'Nom', 'Prénom', 'Voix', '% Voix/Ins', '% Voix/Exp',
        'Code Officiel EPCI', 'Nom Officiel EPCI', 'Code Officiel Région',
        'Nom Officiel Région', 'scrutin_code', 'location', 'lib_du_b_vote']
+        #.tolist()
+        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=0, nrows=0, sep=';').columns
+        logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
+        #logging.info(f'All columns read from csv file opendatasoft 2022 are {all_csv_cols}')
 
         cols_to_read = ['location', 'Code du département', 'Libellé du département',
          'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins', 'lib_du_b_vote']
+        col_indices_to_read = [all_csv_cols.index('location'), all_csv_cols.index('Code du département'), all_csv_cols.index('Libellé du département'),
+                               all_csv_cols.index('Libellé de la commune'), all_csv_cols.index('Inscrits'), all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins'),
+                               all_csv_cols.index('lib_du_b_vote')]
+        logging.info(f'column indices for read csv opendatasoft 2022 are {col_indices_to_read}')
 
         # dict_dtype = {'Coordonnées':'object', 'Code du département':'object', 'Département':'object',
         #               'Commune':'object', 'Abstentions':'int16', 'Inscrits':'int16', '% Abs/Ins':'float32',
         #               'Adresse':'object', 'Code Postal':'object'}
-
+        logging.info(log_memory_after('BEFORE read csv opendatasoft 2022'))
         #header=0, skiprows=[0,],
-        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=False)
-        df = df.dropna()
+        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=True, usecols=col_indices_to_read)
+        logging.info(log_memory_after('read opendatasoft csv 2022'))
         df = df[cols_to_read]
+        df = df.dropna()
         df['latitude'] = df['location'].apply(lambda x: float(x.split(',')[0]) if type(x) is str else x)
         df['longitude'] = df['location'].apply(lambda x: float(x.split(',')[1]) if type(x) is str else x)
         df = df.drop('location', axis=1)
@@ -287,57 +307,56 @@ class Process_france2022(Table_inserts):
         return df
 
 
-if __name__ == '__main__':
-    # process_france2017 = Process_france2017(path_opendatasoft_france2017, path_abstentions_france2017, path_paris_france2017)
-    # if process_france2017.database_name == 'dev_ou_sont_les_abstentions':
-    #     print('LOAD and process opendatasoft source csv data')
-    #     df_2017 = process_france2017.prepare_data_opendatasoft()
-    # else:
-    #     df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
-    #
-    # conn, cursor = process_france2017.connect_driver()
-    # dbExists = process_france2017.check_database_exists(conn, cursor)
-    # if dbExists is False:
-    #     process_france2017.create_db(cursor)
-    # conn_orm, db = process_france2017.connect_orm()
-    #
-    # Session = sessionmaker(bind=db)
-    # session = Session()
-    # table_name = 'france_pres_2017'
-    #
-    # all_columns = list(df_2017.columns)
-    # print(all_columns)
-    # columns_for_table = list()
-    #
-    # for col in all_columns:
-    #     if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-    #                'Libellé de la commune',
-    #                'Adresse complète']:
-    #         columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
-    #
-    #     elif col in ['Abstentions', 'Inscrits']:
-    #         columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
-    #
-    #     else:
-    #         columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
-    #
-    # metadata_obj = MetaData()
-    # france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
-    # metadata_obj.create_all(db)
-    #
-    # df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
-    #
-    #
 
+def insert_france_2017():
+    process_france2017 = Process_france2017(path_opendatasoft_france2017, path_abstentions_france2017, path_paris_france2017)
+    if process_france2017.database_name == 'dev_ou_sont_les_abstentions':
+        logging.info('LOAD and process opendatasoft source csv data')
+        df_2017 = process_france2017.prepare_data_opendatasoft()
+    else:
+        df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
 
+    conn, cursor = process_france2017.connect_driver()
+    dbExists = process_france2017.check_database_exists(conn, cursor)
+    if dbExists is False:
+        process_france2017.create_db(cursor)
+    conn_orm, db = process_france2017.connect_orm()
 
+    Session = sessionmaker(bind=db)
+    session = Session()
+    table_name = 'france_pres_2017'
+
+    all_columns = list(df_2017.columns)
+    logging.info(f'All columns in dataframe 2017 {all_columns}')
+    columns_for_table = list()
+
+    for col in all_columns:
+        if col in ['Code du département', 'Libellé du département', 'dénomination complète',
+                   'Libellé de la commune',
+                   'Adresse complète']:
+            columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
+
+        elif col in ['Abstentions', 'Inscrits']:
+            columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
+
+        else:
+            columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
+
+    metadata_obj = MetaData()
+    france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
+    metadata_obj.create_all(db)
+
+    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+
+def insert_france_2022():
 
     process_france2022 = Process_france2022(path_opendatasoft_france2022)
     if process_france2022.database_name == 'dev_ou_sont_les_abstentions':
-        print('LOAD and process opendatasoft source csv data')
+        logging.info('LOAD and process opendatasoft source csv data')
         df_2022 = process_france2022.prepare_data_opendatasoft()
+        logging.info(log_memory_after('prepare_data_opendatasoft 2022'))
     else:
-        print('No dataframe to work with')
+        logging.info('No dataframe to work with')
 
     conn, cursor = process_france2022.connect_driver()
     dbExists = process_france2022.check_database_exists(conn, cursor)
@@ -350,7 +369,7 @@ if __name__ == '__main__':
     table_name = 'france_pres_2022'
 
     all_columns = list(df_2022.columns)
-    print(all_columns)
+    logging.info(f'All columns in dataframe 2022 {all_columns}')
     columns_for_table = list()
 
     for col in all_columns:
@@ -370,4 +389,21 @@ if __name__ == '__main__':
     metadata_obj.create_all(db)
 
     df_2022.to_sql('france_pres_2022', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+    logging.info(log_memory_after('pandas to sql method france 2022'))
+
+
+
+
+if __name__ == '__main__':
+    insert_france_2022()
+    insert_france_2017()
+    #
+    # del df_2017
+    # del process_france2017
+
+
+
+
+
+
 
