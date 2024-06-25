@@ -1,8 +1,3 @@
-### To view webapp on external server
-
-https://ousontlesabstentions.pythonanywhere.com
-
-
 ### To view webapp as deployed on AWS
 
 https://ousontlesabstentions.org
