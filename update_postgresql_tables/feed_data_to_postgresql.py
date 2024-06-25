@@ -26,13 +26,13 @@ project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
 path_abstentions_france2017 = f'{project_directory}/processed/csv_files/france_2017/abstentions.csv'
 path_paris_france2017 = f'{project_directory}/processed/csv_files/france_2017/geo_paris.csv'
-path_opendatasoft_france2017 = f'{project_directory}/raw/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1.csv'
+path_opendatasoft_france2017 = f'{project_directory}/raw/france_2017/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1.csv'
 path_geo_coords = f'{project_directory}/raw/geo_bureaux_de_vote.csv'
-path_datagouv_france2017 = f'{project_directory}/raw/PR17_BVot_T1_FE.txt'
+path_datagouv_france2017 = f'{project_directory}/raw/france_2017/PR17_BVot_T1_FE.txt'
 
-path_abstentions_france2022 = f'{project_directory}/processed/csv_files/france_2022/abstentions.csv'
-path_paris_france2022 = f'{project_directory}/processed/csv_files/france_2022/no_data.csv'
-path_opendatasoft_france2022 = f'{project_directory}/raw/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
+#path_abstentions_france2022 = f'{project_directory}/processed/csv_files/france_2022/abstentions.csv'
+path_datagouv_france2022 = f'{project_directory}/raw/france_2022/resultats-par-niveau-burvot-t1-france-entiere.txt'
+path_opendatasoft_france2022 = f'{project_directory}/raw/france_2022/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
 
 
 class Table_inserts(Connectdb):
@@ -56,20 +56,20 @@ class Table_inserts(Connectdb):
         df = df.dropna()
         df.to_csv(path_write)
 
-    def all_departements(self):
-        df = self.prepare_df(self.path_abstentions)
-        res = list(df['dénomination complète'].unique())
-        return res
+    # def all_departements(self):
+    #     df = self.prepare_df(self.path_abstentions)
+    #     res = list(df['dénomination complète'].unique())
+    #     return res
 
 class Process_france2017(Table_inserts):
-    def __init__(self, path_opendatasoft, path_abstentions, path_paris):
+    def __init__(self, path_opendatasoft):
         super().__init__()
         self.path_opendatasoft = path_opendatasoft
         self.path_geo_coords = path_geo_coords
         self.path_datagouv_france2017 = path_datagouv_france2017
 
     def join_for_paris(self):
-        df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding = "ISO-8859-1", sep =';', decimal =',')
+        df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding="ISO-8859-1", sep=';', decimal=',')
         logging.info(log_memory_after('read datagouv csv 2017'))
         df_geo_coords = pd.read_csv(self.path_geo_coords)
         logging.info(log_memory_after('read geo_coords csv 2017'))
@@ -157,8 +157,10 @@ class Process_france2017(Table_inserts):
        'Nom', 'Prénom', 'Voix', '% Voix/Ins', '% Voix/Exp', 'Code Insee',
        'Coordonnées', 'Nom Bureau Vote', 'Adresse', 'Code Postal', 'Ville',
        'uniq_bdv']
-        #.tolist()
-        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=0, nrows=0, sep=';').columns
+        #
+        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
+        all_csv_cols = header_chunk.tolist()
+
         logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
         cols_to_read = ['Coordonnées', 'Code du département', 'Département',
          'Commune', 'Inscrits', 'Abstentions', '% Abs/Ins',
@@ -197,7 +199,7 @@ class Process_france2017(Table_inserts):
         renamed_cols = {'% Abs/Ins': 'Pourcentage_Abstentions'}
         df.rename(columns=renamed_cols, inplace=True)
 
-        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
+        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})# inplace=False by default
         df_with_paris['Abstentions'] = df_with_paris['Abstentions'].astype(int, )
         df_with_paris['Pourcentage_Abstentions'] = df_with_paris['Pourcentage_Abstentions'].astype(float, )
 
@@ -214,37 +216,53 @@ class Process_france2022(Table_inserts):
         super().__init__()
         self.path_opendatasoft = path_opendatasoft
         self.path_geo_coords = path_geo_coords
+        self.path_datagouv_france2017 = path_datagouv_france2017
+        self.pandas_read_low_memory = False  # if True creates heterogenous data in Code du département column
+
 
     def join_for_paris(self):
-        # df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding = "ISO-8859-1", sep =';', decimal =',')
-        # df_geo_coords = pd.read_csv(self.path_geo_coords)
-        # df_paris = df_datagouv_france2017[df_datagouv_france2017['Libellé du département'] == 'Paris']
-        # df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x: str(x)) + '-' + df_paris[
-        #     'Code de la circonscription'].apply(lambda x: str(x)).apply(lambda x: '0' + x if len(x) < 2 else x) + '_' + \
-        #                         df_paris['Code du b.vote'].apply(lambda x: str(x)).apply(
-        #                             lambda x: '0' + x if len(x) < 4 else x)
-        # postal = df_geo_coords['code_postal'].fillna('00')
-        # is_paris = postal.apply(lambda x: True if x.startswith('75') else False)
-        # geo_paris = df_geo_coords[is_paris]
-        # geo_paris['col_merge'] = geo_paris['circonscription_code'] + '_' + geo_paris['code_postal'].apply(
-        #     lambda x: str(x)[-2:]) + geo_paris['code'].apply(lambda x: str(x)[-2:])
-        #
-        # df_merged = pd.merge(geo_paris, df_paris, left_on='col_merge', right_on='col_merge')
-        return 'df_merged'
+        all_csv_cols = pd.read_csv(self.path_datagouv_france2017, index_col=False, nrows=0, sep=';',
+                                   encoding="ISO-8859-1").columns.tolist()
+        logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
+        cols_to_read = ['Code du département', 'Libellé du département',
+                        'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins']
+        col_indices_to_read = [all_csv_cols.index('Code du département'), all_csv_cols.index('Libellé du département'),
+                               all_csv_cols.index('Libellé de la commune'),
+                               all_csv_cols.index('Code de la circonscription'),
+                               all_csv_cols.index('Code du b.vote'), all_csv_cols.index('Inscrits'),
+                               all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins')]
+        df = pd.read_csv(path_datagouv_france2022, index_col=False, encoding="ISO-8859-1", sep=';', decimal=',',
+                         usecols=col_indices_to_read)
+
+
+        df_paris = df[df['Libellé du département'] == 'Paris']
+        df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x : str(x)) + '-' +df_paris['Code de la circonscription'].apply(lambda x : str(x)).apply(lambda x : '0'+x if len(x)<2 else x) + '_' + df_paris['Code du b.vote'].apply(lambda x : str(x)).apply(lambda x : '0'+x if len(x)<4 else x)
+
+        geo = pd.read_csv(self.path_geo_coords)
+        postal = geo['code_postal'].fillna('00')
+        is_paris = postal.apply(lambda x: True if x.startswith('75') else False)
+        geo_paris = geo[is_paris]
+        geo_paris['col_merge'] = geo_paris['circonscription_code'] + '_' + geo_paris['code_postal'].apply(
+            lambda x: str(x)[-2:]) + geo_paris['code'].apply(lambda x: str(x)[-2:])
+        df_merged = pd.merge(geo_paris, df_paris, left_on='col_merge', right_on='col_merge')
+
+        return df_merged
 
     def add_paris(self, df):
         #paris_with_coords = pd.read_csv(self.path_paris)
 
-        # paris_with_coords = self.join_for_paris()
-        # keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
-        #                 'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
-        # paris_keep_columns = paris_with_coords[keep_columns]
-        # renamed_cols = {'geo_adresse': 'Adresse complète'}
-        # paris_keep_columns.rename(columns=renamed_cols, inplace=True)
-        # paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
-        # paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        # df = df.append(paris_keep_columns)
-        return 'df'
+        paris_with_coords = self.join_for_paris()
+        keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
+                        'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
+        paris_keep_columns = paris_with_coords[keep_columns]
+        renamed_cols = {'geo_adresse': 'Adresse complète'}
+        paris_keep_columns.rename(columns=renamed_cols, inplace=True)
+        paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
+        paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
+        df = df.append(paris_keep_columns)
+        all_deps = list(df['dénomination complète'].unique())
+        logging.info(f'AFTER APPEND Paris deno')
+        return df
 
     def prepare_data_opendatasoft(self):
 
@@ -262,7 +280,8 @@ class Process_france2022(Table_inserts):
        'Code Officiel EPCI', 'Nom Officiel EPCI', 'Code Officiel Région',
        'Nom Officiel Région', 'scrutin_code', 'location', 'lib_du_b_vote']
         #.tolist()
-        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=0, nrows=0, sep=';').columns
+        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
+        all_csv_cols = header_chunk.tolist()
         logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
         #logging.info(f'All columns read from csv file opendatasoft 2022 are {all_csv_cols}')
 
@@ -278,38 +297,48 @@ class Process_france2022(Table_inserts):
         #               'Adresse':'object', 'Code Postal':'object'}
         logging.info(log_memory_after('BEFORE read csv opendatasoft 2022'))
         #header=0, skiprows=[0,],
-        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=True, usecols=col_indices_to_read)
+        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)
         logging.info(log_memory_after('read opendatasoft csv 2022'))
-        df = df[cols_to_read]
         df = df.dropna()
+        df = df[cols_to_read]
+        #df = df.dropna()
         df['latitude'] = df['location'].apply(lambda x: float(x.split(',')[0]) if type(x) is str else x)
         df['longitude'] = df['location'].apply(lambda x: float(x.split(',')[1]) if type(x) is str else x)
         df = df.drop('location', axis=1)
         # renamed_cols = {'Commune': 'Libellé de la commune', 'Département': 'Libellé du département'}
         # df.rename(columns=renamed_cols, inplace=True)
         # df = self.ammend_jura_ain(df)
+        unique_dep_code = list(df['Code du département'].unique())
+        logging.info(f'BEFORE truncate unwanted symbol code departement list is {unique_dep_code}')
         df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
-
+        unique_dep_code = list(df['Code du département'].unique())
+        logging.info(f'AFTER truncate unwanted symbol code departement list is {list(df["Code du département"].unique())}')
         df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
+        scroll_down_list = list(df['dénomination complète'].unique())
+        logging.info(f'SCROLL DOWN LIST IS {scroll_down_list}')
         df['Adresse complète'] = df['lib_du_b_vote'].map(str) + ' ' + df['Libellé de la commune'].map(str)
         df = df.drop(['lib_du_b_vote'], axis=1)
-        #df_with_paris = self.add_paris(df)
+        df = self.add_paris(df)
+        df = df.dropna()
+        df = df.sort_values(by='Code du département')
+        df['% Abs/Ins'] = df['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
 
-        # df_with_paris = df_with_paris.sort_values(by='Code du département')
-        # df_with_paris['% Abs/Ins'] = df_with_paris['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
-        renamed_cols = {'% Abs/Ins': 'Pourcentage_Abstentions'}
-        df.rename(columns=renamed_cols, inplace=True)
-        #
-        # df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
-        # df_with_paris['Abstentions'] = df_with_paris['Abstentions'].astype(int, )
-        # df_with_paris['Pourcentage_Abstentions'] = df_with_paris['Pourcentage_Abstentions'].astype(float, )
+        #renamed_cols = {'% Abs/Ins': 'Pourcentage_Abstentions'}
+        #df.rename(columns=renamed_cols, inplace=True)
+        df.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'}, inplace=True)# inplace=TRue modifies dataframe as opposed to creating a new one new_df=other_df.rename(inplace=False)
+
+        df['Abstentions'] = df['Abstentions'].astype(int, ) # UNcomment later
+        df['Pourcentage_Abstentions'] = df['Pourcentage_Abstentions'].astype(float, )
+        scroll_down_list_paris = list(df['dénomination complète'].unique())
+        logging.info(f'SCROLL DOWN LIST with paris IS {scroll_down_list_paris}')
+        logging.info(f'DATA TYPES are {df.dtypes}')
 
         return df
 
 
 
 def insert_france_2017():
-    process_france2017 = Process_france2017(path_opendatasoft_france2017, path_abstentions_france2017, path_paris_france2017)
+    process_france2017 = Process_france2017(path_opendatasoft_france2017)
     if process_france2017.database_name == 'dev_ou_sont_les_abstentions':
         logging.info('LOAD and process opendatasoft source csv data')
         df_2017 = process_france2017.prepare_data_opendatasoft()
@@ -396,7 +425,7 @@ def insert_france_2022():
 
 if __name__ == '__main__':
     insert_france_2022()
-    insert_france_2017()
+    #insert_france_2017()
     #
     # del df_2017
     # del process_france2017
