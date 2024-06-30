@@ -125,12 +125,24 @@ class Queries_france2017(Table_queries):
 
 	def query_all_departements(self):
 		def dep_val(denomination):
-			code_dep = int(denomination.strip(')').split('(')[-1][-2:])
+			code_dep =denomination.strip(')').split('(')[-1][-2:]
 			return code_dep
+		def int_dep_val(denomination):
+			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
+			return code_dep
+
 		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
+		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
-		all_departements.sort(key=dep_val)
-		return all_departements
+		logging.info(f'LIST all_departements is {all_departements}')
+		metropole = [dep for dep in all_departements if dep_val(dep).isdigit()]
+		logging.info(f'LIST metropole is {metropole}')
+		corse = [dep for dep in all_departements if dep not in metropole]
+		logging.info(f'LIST corse is {corse}')
+
+		metropole.sort(key=int_dep_val)
+		logging.info(f'AFTER sort LIST metropole is {metropole}')
+		return metropole
 
 	def query_liste_communes(self, departements)-> dict:
 		#create dictionary with all communes for entered departements
@@ -243,8 +255,6 @@ class Queries_france2022(Table_queries):
 	def query_all_departements(self):
 		def dep_val(denomination):
 			code_dep =denomination.strip(')').split('(')[-1][-2:]
-			# if code_dep.isdigit():
-			# 	code_dep = int(code_dep)
 			return code_dep
 
 		def int_dep_val(denomination):

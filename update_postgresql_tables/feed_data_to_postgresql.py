@@ -27,6 +27,9 @@ path_opendatasoft_france2017 = f'{project_directory}/raw/france_2017/election-pr
 path_datagouv_france2022 = f'{project_directory}/raw/france_2022/resultats-par-niveau-burvot-t1-france-entiere.txt'
 path_opendatasoft_france2022 = f'{project_directory}/raw/france_2022/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
 
+path_processed_france2017 = f'{project_directory}/processed/csv_files/france_2017/final_france2017.csv'
+path_processed_france2022 = f'{project_directory}/processed/csv_files/france_2022/final_france2022.csv'
+
 class Table_inserts(Connectdb):
     def __init__(self):
         super().__init__(database_name=database_name, query_aws_table=query_aws_table)
@@ -49,9 +52,12 @@ class Table_inserts(Connectdb):
 class Process_france2017(Table_inserts):
     def __init__(self, path_opendatasoft):
         super().__init__()
-        self.path_opendatasoft = path_opendatasoft
-        self.path_geo_coords = path_geo_coords
         self.path_datagouv_france2017 = path_datagouv_france2017
+        self.path_geo_coords = path_geo_coords
+        self.path_opendatasoft = path_opendatasoft
+        self.opendatasoft_read_chunks = True
+        self.chunksize_read_opendatasoft = 200
+        self.pandas_read_low_memory = True
 
     def join_for_paris(self):
         df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding="ISO-8859-1", sep=';', decimal=',')
@@ -132,7 +138,7 @@ class Process_france2017(Table_inserts):
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
         all_csv_cols = header_chunk.tolist()
 
-        logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
+        logging.info(f'header chunk read from csv file opendatasoft 2017 are {header_chunk}')
         cols_to_read = ['Coordonnées', 'Code du département', 'Département',
          'Commune', 'Inscrits', 'Abstentions', '% Abs/Ins',
          'Adresse', 'Code Postal']
@@ -140,14 +146,21 @@ class Process_france2017(Table_inserts):
                                all_csv_cols.index('Commune'), all_csv_cols.index('Inscrits'), all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins'),
                                all_csv_cols.index('Adresse'), all_csv_cols.index('Code Postal')]
         logging.info(f'column indices for read csv opendatasoft 2017 are {col_indices_to_read}')
-        logging.info(log_memory_after('BEFORE read csv opendatasoft 2017'))
-
         dict_dtype = {'Coordonnées':'object', 'Code du département':'object', 'Département':'object',
                       'Commune':'object', 'Abstentions':'int16', 'Inscrits':'int16', '% Abs/Ins':'float32',
                       'Adresse':'object', 'Code Postal':'object'}
 
         #header=0, skiprows=[0,],
-        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=True, usecols=col_indices_to_read)
+        logging.info(log_memory_after('BEFORE read csv opendatasoft 2017'))
+        if self.opendatasoft_read_chunks:
+            df = pd.DataFrame()
+            for slice_df in pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r',
+                                        low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read,
+                                        chunksize=self.chunksize_read_opendatasoft):
+                df = pd.concat([df, slice_df], ignore_index=True)
+        else:
+            df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r',
+                             low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)
         logging.info(log_memory_after('read csv opendatasoft 2017'))
         df = df[cols_to_read]
         df = df.dropna()
@@ -157,7 +170,12 @@ class Process_france2017(Table_inserts):
         renamed_cols = {'Commune': 'Libellé de la commune', 'Département': 'Libellé du département'}
         df.rename(columns=renamed_cols, inplace=True)
         # df = self.ammend_jura_ain(df)
-        df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
+        if self.opendatasoft_read_chunks or self.pandas_read_low_memory:
+            df['Code du département'] = df['Code du département'].apply(
+                lambda x: str(x)[1:] if '\n' in str(x) else str(x)).apply(
+                lambda x: ''.join(('0', x) if len(x) < 2 else x))
+        else:
+            df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
 
         df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
         df['Adresse complète'] = df['Adresse'].map(str) + ' ' + df['Libellé de la commune'].map(str) + ' ' + df[
@@ -185,12 +203,14 @@ class Process_france2017(Table_inserts):
 class Process_france2022(Table_inserts):
     def __init__(self, path_opendatasoft):
         super().__init__()
-        self.path_opendatasoft = path_opendatasoft
+        self.path_datagouv_france2022 = path_datagouv_france2022
         self.path_geo_coords = path_geo_coords
-        self.path_datagouv_france2017 = path_datagouv_france2017
-        self.pandas_read_low_memory = False  # if True creates heterogenous data in Code du département column
+        self.path_opendatasoft = path_opendatasoft
+        self.opendatasoft_read_chunks = True
+        self.chunksize_read_opendatasoft = 200
+        self.pandas_read_low_memory = True  # if True creates heterogenous data in Code du département column
     def join_for_paris(self):
-        all_csv_cols = pd.read_csv(self.path_datagouv_france2017, index_col=False, nrows=0, sep=';',
+        all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';',
                                    encoding="ISO-8859-1").columns.tolist()
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
         cols_to_read = ['Code du département', 'Libellé du département',
@@ -230,7 +250,7 @@ class Process_france2022(Table_inserts):
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
         df = df.append(paris_keep_columns)
         all_deps = list(df['dénomination complète'].unique())
-        logging.info(f'AFTER APPEND Paris deno')
+        logging.info(log_memory_after('AFTER APPEND Paris deno'))
         return df
 
     def prepare_data_opendatasoft(self):
@@ -253,7 +273,14 @@ class Process_france2022(Table_inserts):
         #               'Adresse':'object', 'Code Postal':'object'}
         logging.info(log_memory_after('BEFORE read csv opendatasoft 2022'))
         #header=0, skiprows=[0,],
-        df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)# boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
+        if self.opendatasoft_read_chunks or self.pandas_read_low_memory:
+            df = pd.DataFrame()
+            for slice_df in pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read, chunksize=self.chunksize_read_opendatasoft):# boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
+                df = pd.concat([df, slice_df], ignore_index=True)
+        else:
+            df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)
+
+
         logging.info(log_memory_after('read opendatasoft csv 2022'))
         df = df.dropna()
         df = df[cols_to_read]
@@ -263,7 +290,11 @@ class Process_france2022(Table_inserts):
         # df = self.ammend_jura_ain(df)
         unique_dep_code = list(df['Code du département'].unique())
         logging.info(f'BEFORE truncate unwanted symbol code departement list is {unique_dep_code}')
-        df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
+        if self.opendatasoft_read_chunks:
+            df['Code du département'] = df['Code du département'].apply(
+                lambda x: str(x)[1:] if '\n' in str(x) else str(x)).apply(lambda x: ''.join(('0', x) if len(x) < 2 else x))
+        else:
+            df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
         logging.info(f'AFTER truncate unwanted symbol code departement list is {list(df["Code du département"].unique())}')
         df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
         scroll_down_list = list(df['dénomination complète'].unique())
@@ -288,14 +319,27 @@ class Process_france2022(Table_inserts):
         return df
 
 
+def write_final_csv_2017():
+    '''
+    Low RAM on ec2 instance
+    '''
+    process_france2017 = Process_france2017(path_opendatasoft_france2017)
+    logging.info('LOAD and process opendatasoft source csv data')
+    df_2017 = process_france2017.prepare_data_opendatasoft()
+    df_2017.to_csv(path_processed_france2017, chunksize=process_france2017.chunksize_read_opendatasoft, index=False)
+    logging.info(log_memory_after('Write final france2017 csv'))
+
 
 def insert_france_2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
-    if process_france2017.database_name == 'dev_ou_sont_les_abstentions':
-        logging.info('LOAD and process opendatasoft source csv data')
-        df_2017 = process_france2017.prepare_data_opendatasoft()
+    if process_france2017.opendatasoft_read_chunks:
+        df_2017 = pd.DataFrame()
+        for slice_df in pd.read_csv(path_processed_france2017,
+                                    low_memory=process_france2017.pandas_read_low_memory,
+                                    chunksize=process_france2017.chunksize_read_opendatasoft):  # boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
+            df_2017 = pd.concat([df_2017, slice_df], ignore_index=True)
     else:
-        df_2017 = process_france2017.prepare_df(path_abstentions_france2017)
+        df_2017 = pd.read_csv(path_processed_france2017, low_memory=process_france2017.pandas_read_low_memory)
 
     conn, cursor = process_france2017.connect_driver()
     dbExists = process_france2017.check_database_exists(conn, cursor)
@@ -327,17 +371,32 @@ def insert_france_2017():
     france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
     metadata_obj.create_all(db)
 
-    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+    df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False, chunksize=configurations['table_insert_chunk_size'])
+    logging.info(log_memory_after('pandas to sql method france 2017'))
+
+
+def write_final_csv_2022():
+    '''
+    Low RAM on ec2 instance
+    '''
+    process_france2022 = Process_france2022(path_opendatasoft_france2022)
+    logging.info('LOAD and process opendatasoft source csv data')
+    df_2022 = process_france2022.prepare_data_opendatasoft()
+    df_2022.to_csv(path_processed_france2022, chunksize=process_france2022.chunksize_read_opendatasoft, index=False)
+    logging.info(log_memory_after('Write final france2022 csv'))
+
 
 def insert_france_2022():
-
     process_france2022 = Process_france2022(path_opendatasoft_france2022)
-    if process_france2022.database_name == 'dev_ou_sont_les_abstentions':
-        logging.info('LOAD and process opendatasoft source csv data')
-        df_2022 = process_france2022.prepare_data_opendatasoft()
-        logging.info(log_memory_after('prepare_data_opendatasoft 2022'))
+    if process_france2022.opendatasoft_read_chunks:
+        df_2022 = pd.DataFrame()
+        for slice_df in pd.read_csv(path_processed_france2022,
+                                    low_memory=process_france2022.pandas_read_low_memory,
+                                    chunksize=process_france2022.chunksize_read_opendatasoft):  # boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
+            df_2022 = pd.concat([df_2022, slice_df], ignore_index=True)
     else:
-        logging.info('No dataframe to work with')
+        df_2022 = pd.read_csv(path_processed_france2017, low_memory=process_france2022.pandas_read_low_memory)
+
 
     conn, cursor = process_france2022.connect_driver()
     dbExists = process_france2022.check_database_exists(conn, cursor)
@@ -369,14 +428,17 @@ def insert_france_2022():
     france_pres_2022 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
     metadata_obj.create_all(db)
 
-    df_2022.to_sql('france_pres_2022', con=session.get_bind(), if_exists='replace', index=False, chunksize=800)
+    df_2022.to_sql('france_pres_2022', con=session.get_bind(), if_exists='replace', index=False, chunksize=configurations['table_insert_chunk_size'])
     logging.info(log_memory_after('pandas to sql method france 2022'))
 
 
 
 
 if __name__ == '__main__':
+    write_final_csv_2022()
     insert_france_2022()
+
+    #write_final_csv_2017()
     #insert_france_2017()
 
 
