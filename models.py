@@ -262,7 +262,7 @@ class Queries_france2022(Table_queries):
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
 		logging.info(f'LIST all_departements is {all_departements}')
-		metropole = [dep for dep in all_departements if dep_val(dep).isdigit()]
+		metropole = [dep for dep in all_departements if dep_val(dep).isdigit() and dep_val(dep) != '97']
 		logging.info(f'LIST metropole is {metropole}')
 		corse = [dep for dep in all_departements if dep not in metropole]
 		logging.info(f'LIST corse is {corse}')
