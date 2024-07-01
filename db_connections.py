@@ -113,4 +113,4 @@ class Connectdb:
 		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
 		engine = create_engine(conn_string, pool_size=42)
 		conn_orm = engine.connect()
-		return conn_orm, engine
+		return conn_orm, engine, conn_string

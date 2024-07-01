@@ -39,7 +39,7 @@ class Table_queries(Connectdb):
 		super().__init__(database_name=database_name, query_aws_table=query_aws_table)
 		self.static_francemetropole = france_metropole_static_html
 		self.query_aws_table = query_aws_table
-		self.conn_orm, self.db = self.connect_orm()
+		self.conn_orm, self.db, _ = self.connect_orm()
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 
@@ -191,9 +191,6 @@ class Queries_france2022(Table_queries):
 	def __init__(self, query_aws_table, france_metropole_static_html):
 		super().__init__(query_aws_table=query_aws_table, france_metropole_static_html=france_metropole_static_html)
 		self.table_name = 'france_pres_2022'
-		# self.conn_orm, self.db = self.connect_orm()
-		# Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
-		# self.session = Session()
 		self.define_mapper_france2022()
 
 	def define_mapper_france2022(self):
