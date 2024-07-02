@@ -2,10 +2,13 @@ database:
   prod_ou_sont_les_abstentions
 web_deployment:
   production_wsgi_server: False
-  port: 5002
+  port: 443
 query_aws_table:
   False
 france_metropole_static_html:
   True
 table_insert_chunk_size:
-  250
+  44
+ram_memory_settings:
+  use_dask_dataframe: True
+  dask_read_block_size: '8MB'

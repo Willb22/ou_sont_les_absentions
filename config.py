@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG,
                     filemode='a',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
-with open('dev_config.yaml', 'r') as file:
+with open('prod_config.yaml', 'r') as file:
 		configurations = yaml.safe_load(file)
 
 logging.info(f'Loaded configurations from yaml are {configurations} \n')
