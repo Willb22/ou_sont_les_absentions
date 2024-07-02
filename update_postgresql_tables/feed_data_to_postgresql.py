@@ -256,7 +256,7 @@ class Process_france2017(Table_inserts):
         df['% Abs/Ins'] = df['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x,
                                                 meta=df['% Abs/Ins'])
         df = df.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
-        df = df.dropna(subset=['Code du département']).sort_values(by='Code du département')
+        #df = df.dropna(subset=['Code du département']).sort_values(by='Code du département')
         return df
 
 
