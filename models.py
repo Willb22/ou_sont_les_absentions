@@ -64,6 +64,10 @@ class Table_queries(Connectdb):
 		dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
 		return dict_data
 
+
+
+
+
 class Queries_france2017(Table_queries):
 	def __init__(self, query_aws_table, france_metropole_static_html):
 		super().__init__(query_aws_table=query_aws_table, france_metropole_static_html=france_metropole_static_html)
@@ -152,6 +156,7 @@ class Queries_france2017(Table_queries):
 			query = self.session.query(User_france2017.Libellé_de_la_commune).filter(
 				User_france2017.dénomination_complète == f"{i}").distinct()#Beware of f"{i} " with trailing space
 			communes = [row[0] for row in query.all()]
+			communes.sort()
 			communes = [name + ' '+ dep[1] for name in communes]
 			communes.insert(0, "Département entier {}".format(dep[1]))
 			resu[i] = communes
@@ -281,6 +286,7 @@ class Queries_france2022(Table_queries):
 			query = self.session.query(User_france2022.Libellé_de_la_commune).filter(
 				User_france2022.dénomination_complète == f"{i}").distinct()#Beware of f"{i} " with trailing space
 			communes = [row[0] for row in query.all()]
+			communes.sort()
 			communes = [name + ' ' + dep[1] for name in communes]
 			communes.insert(0, "Département entier {}".format(dep[1]))
 			resu[i] = communes
