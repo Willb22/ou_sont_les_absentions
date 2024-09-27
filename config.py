@@ -4,15 +4,22 @@ from datetime import datetime
 import os
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+current_directory = os.path.dirname(__file__)
+config_filename = f'{current_directory}/dev_config.yaml'
+log_filename = f'{current_directory}/logs/app_{now}.log'
 
-log_filename = f'logs/app_{now}.log'
+
+
+
 os.makedirs(os.path.dirname(log_filename), exist_ok=True)
 logging.basicConfig(level=logging.DEBUG,
                     filename=log_filename ,
                     filemode='a',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
-with open('prod_config.yaml', 'r') as file:
+
+
+with open(config_filename, 'r') as file:
 		configurations = yaml.safe_load(file)
 
 logging.info(f'Loaded configurations from yaml are {configurations} \n')

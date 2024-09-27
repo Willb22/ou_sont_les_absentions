@@ -65,14 +65,23 @@ class Process_france2017(Table_inserts):
         self.dask_read_block_size = dask_read_block_size
 
     def join_for_paris(self):
-        df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding="ISO-8859-1", sep=';', decimal=',')
+
+
+        dict_dtype = {'Code du département':'object', 'Code du b.vote':'object', 'Code de la circonscription':'object'}
+
+        #df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, encoding="ISO-8859-1", sep=';', decimal=',') # file from manual download
+        #df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, sep=';', decimal=',') # file from automated download
+        df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, sep=';', decimal=',', dtype=dict_dtype, index_col=False)
+
         logging.info(log_memory_after('read datagouv csv 2017'))
-        df_geo_coords = pd.read_csv(self.path_geo_coords)
+        df_geo_coords = pd.read_csv(self.path_geo_coords) #encoding="utf_8"
         logging.info(log_memory_after('read geo_coords csv 2017'))
         df_paris = df_datagouv_france2017[df_datagouv_france2017['Libellé du département'] == 'Paris']
-        df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x: str(x)) + '-' + df_paris[
-            'Code de la circonscription'].apply(lambda x: str(x)).apply(lambda x: '0' + x if len(x) < 2 else x) + '_' + \
-                                df_paris['Code du b.vote'].apply(lambda x: str(x)).apply(
+        logging.info(f'columns types for pandas df_paris are {df_paris.dtypes}')
+        df_paris['Code du b.vote'] = df_paris['Code du b.vote'].apply(lambda x: str(x))
+        df_paris['Code du département'] = df_paris['Code du département'].apply(lambda x: str(x))
+        df_paris['col_merge'] = df_paris['Code du département'].apply(str) + '-' + df_paris[
+            'Code de la circonscription'].apply(str).apply(lambda x: '0' + x if len(x) < 2 else x) + '_' + df_paris['Code du b.vote'].apply(str).apply(
                                     lambda x: '0' + x if len(x) < 4 else x)
         postal = df_geo_coords['code_postal'].fillna('00')
         is_paris = postal.apply(lambda x: True if x.startswith('75') else False)
@@ -223,8 +232,7 @@ class Process_france2017(Table_inserts):
 
         dict_dtype = {'Coordonnées': 'object', 'Code du département': 'object', 'Département': 'object',
                       'Libellé de la commune': 'object', 'Abstentions': 'object', 'Inscrits': 'object',
-                      '% Abs/Ins': 'object',
-                      'lib_du_b_vote': 'object'}
+                      '% Abs/Ins': 'object', 'lib_du_b_vote': 'object', 'Code Postal': 'float64'} #, # code postal as float to avoid ValueError
 
         df = dd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', usecols=col_indices_to_read, blocksize=self.dask_read_block_size,
                          dtype=dict_dtype)
@@ -257,6 +265,7 @@ class Process_france2017(Table_inserts):
                                                 meta=df['% Abs/Ins'])
         df = df.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
         #df = df.dropna(subset=['Code du département']).sort_values(by='Code du département')
+
         return df
 
 
@@ -276,8 +285,7 @@ class Process_france2022(Table_inserts):
         self.use_dask_dataframe = use_dask_dataframe
         self.dask_read_block_size = dask_read_block_size
     def join_for_paris(self):
-        all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';',
-                                   encoding="ISO-8859-1").columns.tolist()
+        all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';').columns.tolist() # remove encoding="ISO-8859-1" when file from automated download
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
         cols_to_read = ['Code du département', 'Libellé du département',
                         'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins']
@@ -286,14 +294,13 @@ class Process_france2022(Table_inserts):
                                all_csv_cols.index('Code de la circonscription'),
                                all_csv_cols.index('Code du b.vote'), all_csv_cols.index('Inscrits'),
                                all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins')]
-        df = pd.read_csv(self.path_datagouv_france2022, index_col=False, encoding="ISO-8859-1", sep=';', decimal=',',
-                         usecols=col_indices_to_read)
+        df = pd.read_csv(self.path_datagouv_france2022, index_col=False, sep=';', decimal=',' ,usecols=col_indices_to_read) # remove encoding="ISO-8859-1" when file from automated download
 
 
         df_paris = df[df['Libellé du département'] == 'Paris']
         df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x : str(x)) + '-' +df_paris['Code de la circonscription'].apply(lambda x: str(x)).apply(lambda x: '0'+x if len(x)< 2 else x) + '_' + df_paris['Code du b.vote'].apply(lambda x: str(x)).apply(lambda x: '0'+x if len(x)< 4 else x)
-
-        geo = pd.read_csv(self.path_geo_coords)
+        #encoding='ISO-8859-1'
+        geo = pd.read_csv(self.path_geo_coords, encoding='utf_8')
         postal = geo['code_postal'].fillna('00')
         is_paris = postal.apply(lambda x: True if x.startswith('75') else False)
         geo_paris = geo[is_paris]
@@ -327,7 +334,7 @@ class Process_france2022(Table_inserts):
 
         # path_dropped_na = f'{project_directory}/processed/csv_files/france_2017/path_opendatasoft_dropped_na.csv'
         # self.default_read(self.path_opendatasoft, path_dropped_na) # tailored read with specified datatypes int float only possible when no NaN
-
+        logging.info(f'Path to Opendatasoft 2022 is {self.path_opendatasoft}')
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
         all_csv_cols = header_chunk.tolist()
         logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
@@ -457,7 +464,7 @@ def write_final_csv_2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
     logging.info('LOAD and process opendatasoft source csv data')
     df_2017 = process_france2017.prepare_data_opendatasoft()
-    df_2017.to_csv(path_processed_france2017, chunksize=process_france2017.chunksize_read_opendatasoft, index=False)
+    df_2017.to_csv(path_processed_france2017, chunksize=process_france2017.chunksize_read_opendatasoft, index=False, mode='w')
     logging.info(log_memory_after('Write final france2017 csv'))
 
 
@@ -574,7 +581,7 @@ def insert_france_2022(pandas_read_csv=True):
                                         chunksize=process_france2022.chunksize_read_opendatasoft):  # boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
                 df_2022 = pd.concat([df_2022, slice_df], ignore_index=True)
         else:
-            df_2022 = pd.read_csv(path_processed_france2017, low_memory=process_france2022.pandas_read_low_memory)
+            df_2022 = pd.read_csv(path_processed_france2022, low_memory=process_france2022.pandas_read_low_memory)
 
     else:
         df_2022 = process_france2022.prepare_data_with_dask()
@@ -638,7 +645,7 @@ def insert_france_2022(pandas_read_csv=True):
 
 
 if __name__ == '__main__':
-    #insert_france_2022(pandas_read_csv=False)
+    insert_france_2022(pandas_read_csv=False)
 
     #write_final_csv_2017()
     insert_france_2017(pandas_read_csv=False)
