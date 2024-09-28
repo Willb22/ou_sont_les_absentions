@@ -1,5 +1,4 @@
 import requests
-import csv
 import gzip
 from datetime import datetime
 import os
@@ -14,7 +13,6 @@ allow_imports()
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
 from config import configurations, logging, now
 
-now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
@@ -42,7 +40,6 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
             with gzip.open(path_gzip, 'rt', newline='', encoding='utf_8') as csv_file:
                 csv_data = csv_file.read()
                 logging.info(log_memory_after(f'AFTER open csv.gz for FILE {destination_filename}'))
-                #logging.info(f'type for var csv_data is {type(csv_data)}')
 
             with open(destination_filename, 'wt') as out_file:
                 out_file.write(csv_data)
