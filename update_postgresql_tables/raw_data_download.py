@@ -14,33 +14,21 @@ allow_imports()
 from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
 from config import configurations, logging, now
 
-current_directory = os.path.dirname(__file__)
-project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-
-#url = 'https://public.opendatasoft.com/explore/dataset/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/export/'
-#url_csv_file = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/exports/csv?lang=fr&amp;timezone=Europe%2FBerlin&amp;use_labels=true&amp;delimiter=%3B"
-#url_opendatasoft_2017 = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/exports/csv"
-url_opendatasoft_2017 = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/exports/csv?lang=fr&use_labels=true&delimiter=%3B"
-
-url_opendatasoft_2022 = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=true&delimiter=%3B"
-url_geo_coords = "http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz" # returns gzip
-
-url_datagouv_france2017 = "https://static.data.gouv.fr/resources/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-1er-tour-par-bureaux-de-vote/20170427-100955/PR17_BVot_T1_FE.txt"
-url_datagouv_france2022 = "https://static.data.gouv.fr/resources/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour/20220414-152542/resultats-par-niveau-burvot-t1-france-entiere.txt"
-
-
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 
-path_geo_coords = f'{project_directory}/raw/geo_bureaux_de_vote.csv'
+url_geo_coords = configurations['raw_data_sources']['url_geo_coords']
+url_opendatasoft_2017 = configurations['raw_data_sources']['france2017']['url_opendatasoft_2017']
+url_opendatasoft_2022 = configurations['raw_data_sources']['france2022']['url_opendatasoft_2022']
+url_datagouv_france2017 = configurations['raw_data_sources']['france2017']['url_datagouv_france2017']
+url_datagouv_france2022 = configurations['raw_data_sources']['france2022']['url_datagouv_france2022']
 
-path_datagouv_france2017 = f'{project_directory}/raw/france_2017/PR17_BVot_T1_FE.txt'
-path_opendatasoft_france2017 = f'{project_directory}/raw/france_2017/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1.csv'
-
-path_datagouv_france2022 = f'{project_directory}/raw/france_2022/resultats-par-niveau-burvot-t1-france-entiere.txt'
-path_opendatasoft_france2022 = f'{project_directory}/raw/france_2022/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
-
+path_geo_coords = f"{project_directory}{configurations['raw_data_sources']['path_geo_coords']}"
+path_datagouv_france2017 = f"{project_directory}{configurations['raw_data_sources']['france2017']['path_datagouv_france2017']}"
+path_opendatasoft_france2017 = f"{project_directory}{configurations['raw_data_sources']['france2017']['path_opendatasoft_france2017']}"
+path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_datagouv_france2022']}"
+path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_opendatasoft_france2022']}"
 
 def download_csv_file(url_csv_file, destination_filename, compressed_content=False):
     if compressed_content:
@@ -71,16 +59,8 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
             logging.info(log_memory_after(f'AFTER write final csv for FILE {destination_filename}'))
     print(f"CSV file successfully downloaded and saved as {destination_filename}")
 
-# download_csv_file(url_geo_coords, f'{current_directory}/geo_coords_{now}.csv', compressed_content=True)
-# download_csv_file(url_datagouv_france2017, f'{current_directory}/datagouv_2017_{now}.csv')
-# download_csv_file(url_datagouv_france2022, f'{current_directory}/datagouv_2022_{now}.csv')
-# download_csv_file(url_opendatasoft_2017, f'{current_directory}/opendatasoft_2017_{now}.csv')
-# download_csv_file(url_opendatasoft_2022, f'{current_directory}/opendatasoft_2022_{now}.csv')
-
-
-
 download_csv_file(url_geo_coords, path_geo_coords, compressed_content=True)
-#download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
-#download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
-#download_csv_file(url_opendatasoft_2017, path_opendatasoft_france2017)
-#download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
+download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
+download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
+download_csv_file(url_opendatasoft_2017, path_opendatasoft_france2017)
+download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
