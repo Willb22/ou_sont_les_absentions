@@ -12,3 +12,17 @@ table_insert_chunk_size:
 ram_memory_settings:
   use_dask_dataframe: True
   dask_read_block_size: '8MB'
+raw_data_sources:
+  url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
+  path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
+  download_chunk_size: 10240000
+  france2017:
+    url_datagouv_france2017: "https://static.data.gouv.fr/resources/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-1er-tour-par-bureaux-de-vote/20170427-100955/PR17_BVot_T1_FE.txt"
+    url_opendatasoft_2017: "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/exports/csv?lang=fr&use_labels=true&delimiter=%3B"
+    path_datagouv_france2017: '/raw/france_2017/PR17_BVot_T1_FE.txt'
+    path_opendatasoft_france2017: '/raw/france_2017/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1.csv'
+  france2022:
+    url_datagouv_france2022: "https://static.data.gouv.fr/resources/election-presidentielle-des-10-et-24-avril-2022-resultats-definitifs-du-1er-tour/20220414-152542/resultats-par-niveau-burvot-t1-france-entiere.txt"
+    url_opendatasoft_2022: "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=true&delimiter=%3B"
+    path_datagouv_france2022: '/raw/france_2022/resultats-par-niveau-burvot-t1-france-entiere.txt'
+    path_opendatasoft_france2022: '/raw/france_2022/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
