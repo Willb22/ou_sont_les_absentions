@@ -23,11 +23,8 @@ path_opendatasoft_france2017 = f"{project_directory}{configurations['raw_data_so
 path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_datagouv_france2022']}"
 path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_opendatasoft_france2022']}"
 
-path_processed_france2017 = f'{project_directory}/processed/csv_files/france_2017/final_france2017.csv'
-path_processed_france2022 = f'{project_directory}/processed/csv_files/france_2022/final_france2022.csv'
-
-use_dask_dataframe = configurations['ram_memory_settings']['use_dask_dataframe']
 dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_size']
+
 class Table_inserts(Connectdb):
     def __init__(self):
         super().__init__(database_name=database_name, query_aws_table=query_aws_table)
@@ -53,10 +50,6 @@ class Process_france2017(Table_inserts):
         self.path_datagouv_france2017 = path_datagouv_france2017
         self.path_geo_coords = path_geo_coords
         self.path_opendatasoft = path_opendatasoft
-        self.opendatasoft_read_chunks = True
-        self.chunksize_read_opendatasoft = 200
-        self.pandas_read_low_memory = True
-        self.use_dask_dataframe = use_dask_dataframe
         self.dask_read_block_size = dask_read_block_size
 
     def join_for_paris(self):
@@ -89,104 +82,10 @@ class Process_france2017(Table_inserts):
         paris_keep_columns.rename(columns=renamed_cols, inplace=True)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        if self.use_dask_dataframe:
-            dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
-            df = dd.concat([df, dask_paris])
-        else:
-            df = df.append(paris_keep_columns)
-            logging.info(log_memory_after('AFTER APPEND Paris deno'))
+        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
+        df = dd.concat([df, dask_paris])
         return df
 
-    def ammend_jura_ain(self, df):
-        df['code_postal'] = nd.where(
-            (df['Libellé du département'] == 'Jura') & (df['Libellé de la commune'] == 'Chancia'),
-            '39102', df['code_postal'])
-        df['code_postal'] = nd.where(
-            (df['Libellé du département'] == 'Jura') & (df['Libellé de la commune'] == 'Lavancia-Epercy'), '39283',
-            df['code_postal'])
-        return df
-
-    def prepare_df(self, path):
-        path_dropped_na = f'{project_directory}/processed/csv_files/france_2017/abstentions_dropped_na.csv'
-        self.default_read(path, path_dropped_na)
-        cols = ['longitude', 'latitude', 'libelle_du_departement',
-         'ville', 'abs_ins', 'inscrits', 'abstentions', 'adresse', 'code_postal']
-        dict_dtype = {'Code du département':'int8', 'abstentions':'int16', 'inscrits':'int16',
-                      'longitude':'float32', 'latitude':'float32', 'code_postal':'object'}
-        df = pd.read_csv(path_dropped_na, usecols=cols, dtype=dict_dtype)
-        renamed_cols = {'ville': 'Libellé de la commune', 'abs_ins': '% Abs/Ins', 'abstentions': 'Abstentions',
-                        'inscrits': 'Inscrits', 'libelle_du_departement': 'Libellé du département'}
-        df.rename(columns=renamed_cols, inplace=True)
-        df = self.ammend_jura_ain(df)
-        df['Code du département'] = df['code_postal'].apply(lambda x: str(x)[:2])
-        df = self.create_denomination_complete(df)
-        df['Adresse complète'] = df['adresse'].map(str) + ' ' + df['code_postal'].map(str)
-        keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
-                        'dénomination complète',
-                        'Libellé de la commune', '% Abs/Ins', 'Inscrits',
-                        'Abstentions', 'Adresse complète']
-        df = df[keep_columns]
-        df_with_paris = self.add_paris(df)
-        df_with_paris = df_with_paris.sort_values(by='Code du département')
-        df_with_paris['% Abs/Ins'] = df_with_paris['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
-        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})
-        df_with_paris['Abstentions'] = df_with_paris['Abstentions'].astype(int, )
-        df_with_paris['Pourcentage_Abstentions'] = df_with_paris['Pourcentage_Abstentions'].astype(float, )
-
-        return df_with_paris
-
-    def prepare_data_opendatasoft(self):
-        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
-        all_csv_cols = header_chunk.tolist()
-        logging.info(f'header chunk read from csv file opendatasoft 2017 are {header_chunk}')
-        cols_to_read = ['Coordonnées', 'Code du département', 'Département',
-         'Commune', 'Inscrits', 'Abstentions', '% Abs/Ins',
-         'Adresse', 'Code Postal']
-        col_indices_to_read = [all_csv_cols.index('Coordonnées'), all_csv_cols.index('Code du département'), all_csv_cols.index('Département'),
-                               all_csv_cols.index('Commune'), all_csv_cols.index('Inscrits'), all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins'),
-                               all_csv_cols.index('Adresse'), all_csv_cols.index('Code Postal')]
-        logging.info(f'column indices for read csv opendatasoft 2017 are {col_indices_to_read}')
-        dict_dtype = {'Coordonnées':'object', 'Code du département':'object', 'Département':'object',
-                      'Commune':'object', 'Abstentions':'int16', 'Inscrits':'int16', '% Abs/Ins':'float32',
-                      'Adresse':'object', 'Code Postal':'object'}
-        logging.info(log_memory_after('BEFORE read csv opendatasoft 2017'))
-        if self.opendatasoft_read_chunks:
-            df = pd.DataFrame()
-            for slice_df in pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r',
-                                        low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read,
-                                        chunksize=self.chunksize_read_opendatasoft):
-                df = pd.concat([df, slice_df], ignore_index=True)
-        else:
-            df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r',
-                             low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)
-        logging.info(log_memory_after('read csv opendatasoft 2017'))
-        df = df[cols_to_read]
-        df = df.dropna()
-        df['latitude'] = df['Coordonnées'].apply(lambda x: float(x.split(',')[0]) if type(x) is str else x)
-        df['longitude'] = df['Coordonnées'].apply(lambda x: float(x.split(',')[1]) if type(x) is str else x)
-        df = df.drop('Coordonnées', axis=1)
-        renamed_cols = {'Commune': 'Libellé de la commune', 'Département': 'Libellé du département'}
-        df.rename(columns=renamed_cols, inplace=True)
-        if self.opendatasoft_read_chunks or self.pandas_read_low_memory:
-            df['Code du département'] = df['Code du département'].apply(
-                lambda x: str(x)[1:] if '\n' in str(x) else str(x)).apply(
-                lambda x: ''.join(('0', x) if len(x) < 2 else x))
-        else:
-            df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
-        df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
-        df['Adresse complète'] = df['Adresse'].map(str) + ' ' + df['Libellé de la commune'].map(str) + ' ' + df[
-            'Code Postal'].map(int).map(str)
-        df = df.drop(['Adresse', 'Code Postal'], axis=1)
-        df_with_paris = self.add_paris(df)
-        df_with_paris = df_with_paris.sort_values(by='Code du département')
-        df_with_paris['% Abs/Ins'] = df_with_paris['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
-        renamed_cols = {'% Abs/Ins': 'Pourcentage_Abstentions'}
-        df.rename(columns=renamed_cols, inplace=True)
-        df_with_paris = df_with_paris.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'})# inplace=False by default
-        df_with_paris['Abstentions'] = df_with_paris['Abstentions'].astype(int, )
-        df_with_paris['Pourcentage_Abstentions'] = df_with_paris['Pourcentage_Abstentions'].astype(float, )
-
-        return df_with_paris
 
     def prepare_data_with_dask(self):
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
@@ -234,11 +133,8 @@ class Process_france2022(Table_inserts):
         self.path_datagouv_france2022 = path_datagouv_france2022
         self.path_geo_coords = path_geo_coords
         self.path_opendatasoft = path_opendatasoft
-        self.opendatasoft_read_chunks = True
-        self.chunksize_read_opendatasoft = 200
-        self.pandas_read_low_memory = True  # if True creates heterogenous data in Code du département column
-        self.use_dask_dataframe = use_dask_dataframe
         self.dask_read_block_size = dask_read_block_size
+
     def join_for_paris(self):
         all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';').columns.tolist() # remove encoding="ISO-8859-1" when file from automated download
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
@@ -271,70 +167,8 @@ class Process_france2022(Table_inserts):
         paris_keep_columns.rename(columns=renamed_cols, inplace=True)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        if self.use_dask_dataframe:
-            dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
-            df = dd.concat([df, dask_paris])
-        else:
-            df = df.append(paris_keep_columns)
-            logging.info(log_memory_after('AFTER APPEND Paris deno'))
-        return df
-
-    def prepare_data_opendatasoft(self):
-
-        # path_dropped_na = f'{project_directory}/processed/csv_files/france_2017/path_opendatasoft_dropped_na.csv'
-        # self.default_read(self.path_opendatasoft, path_dropped_na) # tailored read with specified datatypes int float only possible when no NaN
-        logging.info(f'Path to Opendatasoft 2022 is {self.path_opendatasoft}')
-        header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
-        all_csv_cols = header_chunk.tolist()
-        logging.info(f'header chunk read from csv file opendatasoft 2022 are {header_chunk}')
-        cols_to_read = ['location', 'Code du département', 'Libellé du département',
-         'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins', 'lib_du_b_vote']
-        col_indices_to_read = [all_csv_cols.index('location'), all_csv_cols.index('Code du département'), all_csv_cols.index('Libellé du département'),
-                               all_csv_cols.index('Libellé de la commune'), all_csv_cols.index('Inscrits'), all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins'),
-                               all_csv_cols.index('lib_du_b_vote')]
-        logging.info(f'column indices for read csv opendatasoft 2022 are {col_indices_to_read}')
-
-        # dict_dtype = {'Coordonnées':'object', 'Code du département':'object', 'Département':'object',
-        #               'Commune':'object', 'Abstentions':'int16', 'Inscrits':'int16', '% Abs/Ins':'float32',
-        #               'Adresse':'object', 'Code Postal':'object'}
-        logging.info(log_memory_after('BEFORE read csv opendatasoft 2022'))
-        #header=0, skiprows=[0,],
-        if self.opendatasoft_read_chunks or self.pandas_read_low_memory:
-            df = pd.DataFrame()
-            for slice_df in pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read, chunksize=self.chunksize_read_opendatasoft):# boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
-                df = pd.concat([df, slice_df], ignore_index=True)
-        else:
-            df = pd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', low_memory=self.pandas_read_low_memory, usecols=col_indices_to_read)
-
-        logging.info(log_memory_after('read opendatasoft csv 2022'))
-        df = df.dropna()
-        df = df[cols_to_read]
-        df['latitude'] = df['location'].apply(lambda x: float(x.split(',')[0]) if type(x) is str else x)
-        df['longitude'] = df['location'].apply(lambda x: float(x.split(',')[1]) if type(x) is str else x)
-        df = df.drop('location', axis=1)
-        unique_dep_code = list(df['Code du département'].unique())
-        logging.info(f'BEFORE truncate unwanted symbol code departement list is {unique_dep_code}')
-        if self.opendatasoft_read_chunks:
-            df['Code du département'] = df['Code du département'].apply(
-                lambda x: str(x)[1:] if '\n' in str(x) else str(x)).apply(lambda x: ''.join(('0', x) if len(x) < 2 else x))
-        else:
-            df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:])  # truncate unwanted '\n'
-        logging.info(f'AFTER truncate unwanted symbol code departement list is {list(df["Code du département"].unique())}')
-        df['dénomination complète'] = df['Libellé du département'] + ' (' + df['Code du département'] + ')'
-        scroll_down_list = list(df['dénomination complète'].unique())
-        logging.info(f'SCROLL DOWN LIST IS {scroll_down_list}')
-        df['Adresse complète'] = df['lib_du_b_vote'].map(str) + ' ' + df['Libellé de la commune'].map(str)
-        df = df.drop(['lib_du_b_vote'], axis=1)
-        df = self.add_paris(df)
-        df = df.dropna()
-        df = df.sort_values(by='Code du département')
-        df['% Abs/Ins'] = df['% Abs/Ins'].apply(lambda x: x.replace(',', '.') if type(x) == str else x)
-        df.rename(columns={'% Abs/Ins': 'Pourcentage_Abstentions'}, inplace=True)# inplace=TRue modifies dataframe as opposed to creating a new one new_df=other_df.rename(inplace=False)
-        df['Abstentions'] = df['Abstentions'].astype(int, ) # UNcomment later
-        df['Pourcentage_Abstentions'] = df['Pourcentage_Abstentions'].astype(float, )
-        scroll_down_list_paris = list(df['dénomination complète'].unique())
-        logging.info(f'SCROLL DOWN LIST with paris IS {scroll_down_list_paris}')
-        logging.info(f'DATA TYPES are {df.dtypes}')
+        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
+        df = dd.concat([df, dask_paris])
 
         return df
 
@@ -384,18 +218,9 @@ class Process_france2022(Table_inserts):
 
         return df
 
-def write_final_csv_2017():
-    '''
-    Low RAM on ec2 instance
-    '''
-    process_france2017 = Process_france2017(path_opendatasoft_france2017)
-    logging.info('LOAD and process opendatasoft source csv data')
-    df_2017 = process_france2017.prepare_data_opendatasoft()
-    df_2017.to_csv(path_processed_france2017, chunksize=process_france2017.chunksize_read_opendatasoft, index=False, mode='w')
-    logging.info(log_memory_after('Write final france2017 csv'))
 
 
-def insert_france_2017(pandas_read_csv=True):
+def insert_france_2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
     conn, cursor = process_france2017.connect_driver()
     dbExists = process_france2017.check_database_exists(conn, cursor)
@@ -405,18 +230,7 @@ def insert_france_2017(pandas_read_csv=True):
     Session = sessionmaker(bind=db)
     session = Session()
     table_name = 'france_pres_2017'
-    if pandas_read_csv:
-        if process_france2017.opendatasoft_read_chunks:
-            df_2017 = pd.DataFrame()
-            for slice_df in pd.read_csv(path_processed_france2017,
-                                        low_memory=process_france2017.pandas_read_low_memory,
-                                        chunksize=process_france2017.chunksize_read_opendatasoft):  # boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
-                df_2017 = pd.concat([df_2017, slice_df], ignore_index=True)
-        else:
-            df_2017 = pd.read_csv(path_processed_france2017, low_memory=process_france2017.pandas_read_low_memory)
-
-    else:
-        df_2017 = process_france2017.prepare_data_with_dask()
+    df_2017 = process_france2017.prepare_data_with_dask()
     logging.info(log_memory_after('retrieve dataframe before SQL'))
     all_columns = list(df_2017.columns)
     logging.info(f'All columns in dataframe 2017 {all_columns}')
@@ -438,46 +252,29 @@ def insert_france_2017(pandas_read_csv=True):
     france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
     metadata_obj.create_all(db)
     logging.info(log_memory_after('SQL ORM configs '))
-
-    if process_france2017.use_dask_dataframe:
-        col_types = dict()
-        col_types['Code du département'] = String
-        col_types['Libellé du département'] = String
-        col_types['Libellé de la commune'] = String
-        col_types['Inscrits'] = Integer
-        col_types['Abstentions'] = Integer
-        col_types['Pourcentage_Abstentions'] = Float
-        col_types['latitude'] = Float
-        col_types['longitude'] = Float
-        col_types['dénomination complète'] = String
-        col_types['Adresse complète'] = String
-        logging.info(f'CHUNK size for SQL insertion is {configurations["table_insert_chunk_size"]}')
-        for i in range(df_2017.npartitions):
-            partition = df_2017.get_partition(i)
-            if i == 0:
-                partition.to_sql('france_pres_2017', uri=uri, if_exists='replace', index=False,
-                        dtype=col_types)
-            if i > 0:
-                partition.to_sql('france_pres_2017', uri=uri, if_exists='append', index=False,
-                        dtype=col_types)
-
-    else:
-        df_2017.to_sql('france_pres_2017', con=session.get_bind(), if_exists='replace', index=False,
-                       chunksize=configurations['table_insert_chunk_size'])
+    col_types = dict()
+    col_types['Code du département'] = String
+    col_types['Libellé du département'] = String
+    col_types['Libellé de la commune'] = String
+    col_types['Inscrits'] = Integer
+    col_types['Abstentions'] = Integer
+    col_types['Pourcentage_Abstentions'] = Float
+    col_types['latitude'] = Float
+    col_types['longitude'] = Float
+    col_types['dénomination complète'] = String
+    col_types['Adresse complète'] = String
+    for i in range(df_2017.npartitions):
+        partition = df_2017.get_partition(i)
+        if i == 0:
+            partition.to_sql('france_pres_2017', uri=uri, if_exists='replace', index=False,
+                    dtype=col_types)
+        if i > 0:
+            partition.to_sql('france_pres_2017', uri=uri, if_exists='append', index=False,
+                    dtype=col_types)
     logging.info(log_memory_after('sql insertion france 2017'))
 
-def write_final_csv_2022():
-    '''
-    Low RAM on ec2 instance
-    '''
-    process_france2022 = Process_france2022(path_opendatasoft_france2022)
-    logging.info('LOAD and process opendatasoft source csv data')
-    df_2022 = process_france2022.prepare_data_opendatasoft()
-    df_2022.to_csv(path_processed_france2022, chunksize=process_france2022.chunksize_read_opendatasoft, index=False)
-    logging.info(log_memory_after('Write final france2022 csv'))
 
-
-def insert_france_2022(pandas_read_csv=True):
+def insert_france_2022():
     process_france2022 = Process_france2022(path_opendatasoft_france2022)
     conn, cursor = process_france2022.connect_driver()
     dbExists = process_france2022.check_database_exists(conn, cursor)
@@ -487,19 +284,7 @@ def insert_france_2022(pandas_read_csv=True):
     Session = sessionmaker(bind=db)
     session = Session()
     table_name = 'france_pres_2022'
-
-    if pandas_read_csv:
-        if process_france2022.opendatasoft_read_chunks:
-            df_2022 = pd.DataFrame()
-            for slice_df in pd.read_csv(path_processed_france2022,
-                                        low_memory=process_france2022.pandas_read_low_memory,
-                                        chunksize=process_france2022.chunksize_read_opendatasoft):  # boolean for low_memory can cause mixed types in Code du département and affect user scroll down menu
-                df_2022 = pd.concat([df_2022, slice_df], ignore_index=True)
-        else:
-            df_2022 = pd.read_csv(path_processed_france2022, low_memory=process_france2022.pandas_read_low_memory)
-
-    else:
-        df_2022 = process_france2022.prepare_data_with_dask()
+    df_2022 = process_france2022.prepare_data_with_dask()
     logging.info(log_memory_after('retrieve dataframe before SQL'))
     all_columns = list(df_2022.columns)
     logging.info(f'All columns in dataframe 2022 {all_columns}')
@@ -522,38 +307,32 @@ def insert_france_2022(pandas_read_csv=True):
     metadata_obj.create_all(db)
     logging.info(log_memory_after('SQL ORM configs '))
 
-    if process_france2022.use_dask_dataframe:
-        col_types = dict()
-        col_types['Code du département'] = String
-        col_types['Libellé du département'] = String
-        col_types['Libellé de la commune'] = String
-        col_types['Inscrits'] = Integer
-        col_types['Abstentions'] = Integer
-        col_types['Pourcentage_Abstentions'] = Float
-        col_types['latitude'] = Float
-        col_types['longitude'] = Float
-        col_types['dénomination complète'] = String
-        col_types['Adresse complète'] = String
-        logging.info(f'CHUNK size for SQL insertion is {configurations["table_insert_chunk_size"]}')
-        for i in range(df_2022.npartitions):
-            partition = df_2022.get_partition(i)
-            if i == 0:
-                partition.to_sql('france_pres_2022', uri=uri, if_exists='replace', index=False,
-                        dtype=col_types)
-            if i > 0:
-                partition.to_sql('france_pres_2022', uri=uri, if_exists='append', index=False,
-                        dtype=col_types)
+    col_types = dict()
+    col_types['Code du département'] = String
+    col_types['Libellé du département'] = String
+    col_types['Libellé de la commune'] = String
+    col_types['Inscrits'] = Integer
+    col_types['Abstentions'] = Integer
+    col_types['Pourcentage_Abstentions'] = Float
+    col_types['latitude'] = Float
+    col_types['longitude'] = Float
+    col_types['dénomination complète'] = String
+    col_types['Adresse complète'] = String
+    for i in range(df_2022.npartitions):
+        partition = df_2022.get_partition(i)
+        if i == 0:
+            partition.to_sql('france_pres_2022', uri=uri, if_exists='replace', index=False,
+                    dtype=col_types)
+        if i > 0:
+            partition.to_sql('france_pres_2022', uri=uri, if_exists='append', index=False,
+                    dtype=col_types)
 
-    else:
-        df_2022.to_sql('france_pres_2022', con=session.get_bind(), if_exists='replace', index=False,
-                       chunksize=configurations['table_insert_chunk_size'])
     logging.info(log_memory_after('sql insertion france 2022'))
 
 if __name__ == '__main__':
-    insert_france_2022(pandas_read_csv=False)
+    insert_france_2022()
 
-    #write_final_csv_2017()
-    insert_france_2017(pandas_read_csv=False)
+    insert_france_2017()
 
 
 

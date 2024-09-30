@@ -7,10 +7,7 @@ query_aws_table:
   False
 france_metropole_static_html:
   True
-table_insert_chunk_size:
-  44
 ram_memory_settings:
-  use_dask_dataframe: False
   dask_read_block_size: '8MB'
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
