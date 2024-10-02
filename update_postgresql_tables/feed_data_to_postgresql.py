@@ -227,29 +227,9 @@ def insert_france_2017():
     if dbExists is False:
         process_france2017.create_db(cursor)
     conn_orm, db, uri = process_france2017.connect_orm()
-    Session = sessionmaker(bind=db)
-    session = Session()
-    table_name = 'france_pres_2017'
     df_2017 = process_france2017.prepare_data_with_dask()
     logging.info(log_memory_after('retrieve dataframe before SQL'))
-    all_columns = list(df_2017.columns)
-    logging.info(f'All columns in dataframe 2017 {all_columns}')
-    columns_for_table = list()
-
-    for col in all_columns:
-        if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-                   'Libellé de la commune',
-                   'Adresse complète']:
-            columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
-
-        elif col in ['Abstentions', 'Inscrits']:
-            columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
-
-        else:
-            columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
-
     metadata_obj = MetaData()
-    france_pres_2017 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
     metadata_obj.create_all(db)
     logging.info(log_memory_after('SQL ORM configs '))
     col_types = dict()
@@ -281,29 +261,9 @@ def insert_france_2022():
     if dbExists is False:
         process_france2022.create_db(cursor)
     conn_orm, db, uri = process_france2022.connect_orm()
-    Session = sessionmaker(bind=db)
-    session = Session()
-    table_name = 'france_pres_2022'
     df_2022 = process_france2022.prepare_data_with_dask()
     logging.info(log_memory_after('retrieve dataframe before SQL'))
-    all_columns = list(df_2022.columns)
-    logging.info(f'All columns in dataframe 2022 {all_columns}')
-    columns_for_table = list()
-
-    for col in all_columns:
-        if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-                   'Libellé de la commune',
-                   'Adresse complète']:
-            columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), ))
-
-        elif col in ['Abstentions', 'Inscrits']:
-            columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), ))
-
-        else:
-            columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), ))
-
     metadata_obj = MetaData()
-    france_pres_2022 = Table(table_name, metadata_obj, *(column for column in columns_for_table), )
     metadata_obj.create_all(db)
     logging.info(log_memory_after('SQL ORM configs '))
 
