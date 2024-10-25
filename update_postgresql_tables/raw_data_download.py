@@ -1,6 +1,6 @@
 import requests
 import gzip
-from datetime import datetime
+from pathlib import Path
 import os
 import sys
 
@@ -10,7 +10,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
+from db_connections import Connectdb, log_memory_after, database_name
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
@@ -31,6 +31,8 @@ path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_so
 raw_data_download_chunk_size = configurations['raw_data_sources']['download_chunk_size']
 
 def download_csv_file(url_csv_file, destination_filename, compressed_content=False):
+    target_directory = '/'.join(destination_filename.split('/')[:-1])
+    Path(target_directory).mkdir(parents=True, exist_ok=True)
     if compressed_content:
         response = requests.get(url_csv_file)
         if response.status_code == 200:
@@ -59,8 +61,8 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
             logging.info(log_memory_after(f'AFTER write final csv for FILE {destination_filename}'))
     print(f"CSV file successfully downloaded and saved as {destination_filename}")
 
-# download_csv_file(url_geo_coords, path_geo_coords, compressed_content=True)
-# download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
-# download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
+download_csv_file(url_geo_coords, path_geo_coords, compressed_content=True)
+download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
+download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
 download_csv_file(url_opendatasoft_2017, path_opendatasoft_france2017)
 download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
