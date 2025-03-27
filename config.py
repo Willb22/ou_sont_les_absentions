@@ -1,3 +1,28 @@
+import yaml
+import logging
+from datetime import datetime
+import os
+
+now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+current_directory = os.path.dirname(__file__)
+config_filename = f'{current_directory}/dev_config.yaml'
+log_filename = f'{current_directory}/logs/app_{now}.log'
+
+
+
+
+os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+logging.basicConfig(level=logging.DEBUG,
+                    filename=log_filename ,
+                    filemode='a',
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+
+with open(config_filename, 'r') as file:
+		configurations = yaml.safe_load(file)
+
+logging.info(f'Loaded configurations from yaml are {configurations} \n')
 
 colorscheme = [
 					  "#5A1846",
@@ -11,10 +36,12 @@ colorscheme = [
 #colorscheme = ['FFFF00', 'FFCC00', 'FF9900', 'FF6600', 'FF3300', 'FF0000']
 colorscheme = ['#FFFF00', '#FFCC00', '#FF9900', '#FF6600', '#FF3300', '#FF0000']
 #colorscheme = ['#f2e600', '#e6cc00', '#d9b300', '#cc9900', '#c08000', '#b36600', '#a64d00', '#993300', '#8d1a00', '#800000']
-#colorscheme = ['#FFE6E6', '#FFCCCC', '#FFFB2B2', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','CC0000', '#990000', '#660000']
+#colorscheme = ['#FFE6E6', '#FFCCCC', '#FF9999', '#FF8080', '#FF1D1D', '#FF1919','#CC0000', '#990000', '#660000']
+#'#FFFB2B2',
 #colorscheme = ['#ffe6e6', '#ffcccc', '#ff9999', '#ff4d4d', '#ff1a1a', '#cc0000','#CC0000', '#800000', '#330000']
-
-#dbmapconfig["config"]["visState"]["interactionConfig"]["tooltip"]["fieldsToShow"]["data_1"][0]["name"] = "Pourcentage Absentions"
+highlightColor = [252,242,26,255]
+highlightColor = 'FF1D1D'
+base_radius = 17.2
 dbmapconfig = {
 	  "version": "v1",
 	  "config": {
@@ -28,14 +55,14 @@ dbmapconfig = {
 				"dataId": "data_1",
 				"label": "Point",
 				"color":[255,203,153],
-			    "highlightColor":[252,242,26,255],
+			    "highlightColor":highlightColor,
 				"columns": {
 				  "lat": "latitude",
 				  "lng": "longitude",
 				},
 				"isVisible": True,
 				"visConfig": {
-				  "radius": 17.2,
+				  "radius": base_radius,
 				  "fixedRadius": False,
 				  "opacity": 0.8,
 				  "outline": False,
@@ -80,11 +107,11 @@ dbmapconfig = {
 			  },
 			  "visualChannels": {
 				"colorField": {
-				  "name": "Pourcentage Absentions",
+				  "name": "Pourcentage Abstentions",
 				  "type": "float"
 				},
 				"colorScale": "quantile",
-				"strokeColorField": "Pourcentage Absentions",
+				"strokeColorField": "Pourcentage Abstentions",
 				"strokeColorScale": "quantile",
 				"sizeField": {
 				  "name": "Inscrits",
@@ -100,7 +127,7 @@ dbmapconfig = {
 				"data_1": [
 
 				  {
-					"name": "Pourcentage Absentions",
+					"name": "Pourcentage Abstentions",
 					"format": None
 				  },
 				  {
