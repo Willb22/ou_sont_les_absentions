@@ -139,4 +139,3 @@ if __name__ == '__main__':
 		app_server.serve_forever()
 	else:
 		app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
-
