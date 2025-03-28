@@ -1,13 +1,14 @@
 #/usr/bin/python3
+import traceback
 from flask import Flask, request, render_template
-from models import query_france2017, query_france2022
+from web_app.models import query_france2017, query_france2022
 from db_connections import log_memory_after
 import git
 import gevent.pywsgi
 from config import configurations, logging, now
 
 
-app = Flask(__name__, template_folder="./processed/html_files/")
+app = Flask(__name__, template_folder="./html_files/")
 production_wsgi_server = configurations['web_deployment']['production_wsgi_server']
 port = configurations['web_deployment']['port']
 
@@ -129,13 +130,17 @@ def test_map():
     
     
     
-if __name__ == '__main__':
-    # Threaded option to enable multiple instances for multiple user access support
-    #app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
-	#app.run(threaded=True, host='0.0.0.0', port=5000)
-	#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
-	if production_wsgi_server:
-		app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', port), app, keyfile='key.pem', certfile='cert.pem')
-		app_server.serve_forever()
-	else:
-		app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
+def run_flask_app():
+	try:
+
+		# Threaded option to enable multiple instances for multiple user access support
+		#app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
+		#app.run(threaded=True, host='0.0.0.0', port=5000)
+		#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
+		if production_wsgi_server:
+			app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', port), app, keyfile='key.pem', certfile='cert.pem')
+			app_server.serve_forever()
+		else:
+			app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
+	except Exception as e:
+		traceback.format_exc()
