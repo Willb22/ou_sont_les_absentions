@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14.15
+    container_name: my_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${PASSPOSTGRES}
+      #POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5431:5432"
+    env_file:
+      - .env
+#    volumes:
+#      - pg_data:/var/lib/postgresql/data
+
+  datafeed:
+    build:
+      context: .
+      dockerfile: ./process_data/Dockerfile
+    #container_name: data_feed
+    network_mode: "host"
+    #depends_on:
+    #  - db
+    env_file:
+      - .env
+
+
+
+      #DB_NAME: ${POSTGRES_DB}
+    volumes:
+      - .:/home/project_root
+    command: python -m process_data
+
+  webapp:
+    build:
+      context: .
+      dockerfile: ./web_app/Dockerfile
+    #container_name: flask_webapp
+    network_mode: "host"
+    #depends_on:
+    #  - db
+    env_file:
+      - .env
+
+    #environment:
+      #DB_HOST: ${DB_HOST}
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: thisisthemostamazingpassword
+#      PORT_POSTGRESQL: ${PORT_POSTGRESQL}
+#      PORT_POSTGRESQL_AWS: ${PORT_POSTGRESQL_AWS}
+#      PORT_POSTGRESQL_DOCKER: ${PORT_POSTGRESQL_DOCKER}
+
+      #DB_NAME: ${POSTGRES_DB}
+    #ports:
+    #  - "5000:5000"
+    volumes:
+      - .:/home/web_app_project_root
+    command: python -m web_app
+
+#volumes:
+#  pg_data:

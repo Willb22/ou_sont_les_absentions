@@ -11,7 +11,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
+from db_connections import Connectdb, log_memory_after, database_name, table_connection
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
@@ -27,7 +27,7 @@ dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_si
 
 class Table_inserts(Connectdb):
     def __init__(self):
-        super().__init__(database_name=database_name, query_aws_table=query_aws_table)
+        super().__init__(database_name=database_name, table_connection=table_connection)
         self.table_name = ''
         self.opendatasoft_cols_to_read = list()
         self.opendatasoft_col_types = dict()

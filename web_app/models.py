@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import registry
 from datetime import datetime
 from config import dbmapconfig
-from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
+from db_connections import Connectdb, log_memory_after, database_name, table_connection
 from config import configurations, logging, now
 
 logging.info(f'DATABSE is {database_name}')
@@ -35,10 +35,10 @@ class User_france2022:
 
 
 class Table_queries(Connectdb):
-	def __init__(self, query_aws_table, france_metropole_static_html):
-		super().__init__(database_name=database_name, query_aws_table=query_aws_table)
+	def __init__(self, table_connection, france_metropole_static_html):
+		super().__init__(database_name=database_name, table_connection=table_connection)
 		self.static_francemetropole = france_metropole_static_html
-		self.query_aws_table = query_aws_table
+		self.table_connection = table_connection
 		self.conn_orm, self.db, _ = self.connect_orm()
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
@@ -69,8 +69,8 @@ class Table_queries(Connectdb):
 
 
 class Queries_france2017(Table_queries):
-	def __init__(self, query_aws_table, france_metropole_static_html):
-		super().__init__(query_aws_table=query_aws_table, france_metropole_static_html=france_metropole_static_html)
+	def __init__(self, table_connection, france_metropole_static_html):
+		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
 		self.table_name = 'france_pres_2017'
 		self.define_mapper_france2017()
 
@@ -193,8 +193,8 @@ class Queries_france2017(Table_queries):
 
 class Queries_france2022(Table_queries):
 
-	def __init__(self, query_aws_table, france_metropole_static_html):
-		super().__init__(query_aws_table=query_aws_table, france_metropole_static_html=france_metropole_static_html)
+	def __init__(self, table_connection, france_metropole_static_html):
+		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
 		self.table_name = 'france_pres_2022'
 		self.define_mapper_france2022()
 
@@ -323,6 +323,6 @@ class Queries_france2022(Table_queries):
 
 
 
-query_france2017 = Queries_france2017(query_aws_table=query_aws_table, france_metropole_static_html=configurations['france_metropole_static_html'])
-query_france2022 = Queries_france2022(query_aws_table=query_aws_table,france_metropole_static_html=configurations['france_metropole_static_html'])
+query_france2017 = Queries_france2017(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])
+query_france2022 = Queries_france2022(table_connection=table_connection,france_metropole_static_html=configurations['france_metropole_static_html'])
 

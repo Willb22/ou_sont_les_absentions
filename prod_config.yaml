@@ -3,8 +3,8 @@ database:
 web_deployment:
   production_wsgi_server: False
   port: 443
-query_aws_table:
-  False
+table_connection:
+  docker
 france_metropole_static_html:
   True
 ram_memory_settings:

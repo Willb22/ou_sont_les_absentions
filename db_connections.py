@@ -13,14 +13,14 @@ def log_memory_after(message):
 	return memory_message
 
 database_name = configurations['database']
-query_aws_table = configurations['query_aws_table']
+table_connection = configurations['table_connection']
 class User:
     pass
 
 
 class Connectdb:
-	def __init__(self, database_name, query_aws_table):
-		self.query_aws_table = query_aws_table
+	def __init__(self, database_name, table_connection):
+		self.table_connection = table_connection
 		self.database_name = database_name
 
 	def get_credentials(self, use_aws):
@@ -37,11 +37,15 @@ class Connectdb:
 		    user, password, host and port
 		"""
 		user = 'postgres'
-		if use_aws:
+		if table_connection == 'AWS':
 			host = 'ec2-54-173-241-113.compute-1.amazonaws.com' # Public IPv4 DNS, contains elastic IP to AWS instance
 			port = os.environ.get('PORT_POSTGRESQL_AWS')
 			passw = os.environ.get('PASSPOSTGRES')
-		else:
+		elif table_connection == 'docker':
+			host = '127.0.0.1'
+			port = os.environ.get('PORT_POSTGRESQL_DOCKER')
+			passw = os.environ.get('PASSPOSTGRES')
+		elif table_connection == 'local':
 			host = '127.0.0.1'
 			port = os.environ.get('PORT_POSTGRESQL')
 			passw = os.environ.get('PASSPOSTGRES')
@@ -60,7 +64,7 @@ class Connectdb:
         -------
         connction and cursor class
         """
-		user, passw, host, port = self.get_credentials(self.query_aws_table)
+		user, passw, host, port = self.get_credentials(self.table_connection)
 
 		# establishing the connection
 		conn = psycopg2.connect(
@@ -109,7 +113,7 @@ class Connectdb:
         -------
         sqlalchemy Engine instance and connection
         """
-		user, passw, host, port = self.get_credentials(self.query_aws_table)
+		user, passw, host, port = self.get_credentials(self.table_connection)
 		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
 		engine = create_engine(conn_string, pool_size=42)
 		conn_orm = engine.connect()
