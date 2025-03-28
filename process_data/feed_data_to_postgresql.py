@@ -252,15 +252,16 @@ class Process_france2022(Table_inserts):
         return df
 
 
-if __name__ == '__main__':
+def insert_france2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
     df_france2017 = process_france2017.dask_dataframe()
     process_france2017.insert_to_db(df_france2017)
 
+
+def insert_france2022():
     process_france2022 = Process_france2022(path_opendatasoft_france2022)
     df_france2022 = process_france2022.dask_dataframe()
     process_france2022.insert_to_db(df_france2022)
-
 
 
 
