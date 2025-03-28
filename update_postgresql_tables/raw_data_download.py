@@ -23,6 +23,7 @@ url_datagouv_france2017 = configurations['raw_data_sources']['france2017']['url_
 url_datagouv_france2022 = configurations['raw_data_sources']['france2022']['url_datagouv_france2022']
 
 path_geo_coords = f"{project_directory}{configurations['raw_data_sources']['path_geo_coords']}"
+path_compressed_geocoords = f"{project_directory}{configurations['raw_data_sources']['path_compressed_geocoords']}"
 path_datagouv_france2017 = f"{project_directory}{configurations['raw_data_sources']['france2017']['path_datagouv_france2017']}"
 path_opendatasoft_france2017 = f"{project_directory}{configurations['raw_data_sources']['france2017']['path_opendatasoft_france2017']}"
 path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_datagouv_france2022']}"
@@ -37,7 +38,7 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
         response = requests.get(url_csv_file)
         if response.status_code == 200:
             logging.info(log_memory_after(f'get response for FILE {destination_filename}'))
-            path_gzip = 'geo_bureaux_de_vote.csv.gz'
+            path_gzip = path_compressed_geocoords
             with open(path_gzip, "wb") as f:
                 f.write(response.content)
                 logging.info(log_memory_after(f'AFTER write csv.gz for FILE {destination_filename}'))
