@@ -12,7 +12,6 @@ ram_memory_settings:
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
-  path_compressed_geocoords: '/raw/geo_bureaux_de_vote.csv.gz'
   download_chunk_size: 10240000
   france2017:
     url_datagouv_france2017: "https://static.data.gouv.fr/resources/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-1er-tour-par-bureaux-de-vote/20170427-100955/PR17_BVot_T1_FE.txt"
