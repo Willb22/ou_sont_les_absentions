@@ -1,7 +1,7 @@
 database:
   prod_ou_sont_les_abstentions
 web_deployment:
-  production_wsgi_server: False
+  production_wsgi_server: True
   port: 443
 table_connection:
   docker
