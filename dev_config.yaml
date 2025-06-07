@@ -8,6 +8,7 @@ table_connection:
 france_metropole_static_html:
   True
 ram_memory_settings:
+  percentage_to_use: 60
   dask_read_block_size: '8MB'
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'

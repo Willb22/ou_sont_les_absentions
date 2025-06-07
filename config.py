@@ -2,6 +2,7 @@ import yaml
 import logging
 from datetime import datetime
 import os
+import psutil
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 current_directory = os.path.dirname(__file__)
@@ -18,11 +19,20 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
+free_mem = psutil.virtual_memory().available
+free_mem_MB = free_mem/ 1024**2
+print(free_mem_MB , "MB free")
 
 with open(config_filename, 'r') as file:
 		configurations = yaml.safe_load(file)
+		configurations['raw_data_sources']['download_chunk_size'] = int(free_mem*configurations['ram_memory_settings']['percentage_to_use']/100)
+		if int(free_mem_MB*configurations['ram_memory_settings']['percentage_to_use']/100):
+			configurations['ram_memory_settings']['dask_read_block_size'] = f"{int(free_mem_MB*configurations['ram_memory_settings']['percentage_to_use']/100)}MB"
+		else:
+			configurations['ram_memory_settings']['dask_read_block_size'] = '1MB'
+#logging.info(f'dask_read_block_size is {configurations['ram_memory_settings']['dask_read_block_size']}')
 
-logging.info(f'Loaded configurations from yaml are {configurations} \n')
+print(f'Loaded configurations from yaml are {configurations} \n')
 
 colorscheme = [
 					  "#5A1846",
