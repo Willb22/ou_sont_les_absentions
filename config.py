@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 free_mem = psutil.virtual_memory().available
 free_mem_MB = free_mem/ 1024**2
-print(free_mem_MB , "MB free")
+logging.info(f'{free_mem_MB} MB free' )
 
 with open(config_filename, 'r') as file:
 		configurations = yaml.safe_load(file)
@@ -32,7 +32,7 @@ with open(config_filename, 'r') as file:
 			configurations['ram_memory_settings']['dask_read_block_size'] = '1MB'
 #logging.info(f'dask_read_block_size is {configurations['ram_memory_settings']['dask_read_block_size']}')
 
-print(f'Loaded configurations from yaml are {configurations} \n')
+logging.info(f'Loaded configurations from yaml are {configurations} \n')
 
 colorscheme = [
 					  "#5A1846",
