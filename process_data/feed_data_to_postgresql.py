@@ -1,8 +1,6 @@
 import pandas as pd
-import numpy as nd
 import dask.dataframe as dd
-from sqlalchemy import MetaData, Table, Column, String, Integer, Float
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import MetaData, String, Integer, Float
 import os, sys
 
 def allow_imports():
@@ -11,7 +9,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name, query_aws_table
+from db_connections import Connectdb, log_memory_after, database_name, table_connection
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
@@ -27,7 +25,7 @@ dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_si
 
 class Table_inserts(Connectdb):
     def __init__(self):
-        super().__init__(database_name=database_name, query_aws_table=query_aws_table)
+        super().__init__(database_name=database_name, table_connection=table_connection)
         self.table_name = ''
         self.opendatasoft_cols_to_read = list()
         self.opendatasoft_col_types = dict()
@@ -60,7 +58,6 @@ class Table_inserts(Connectdb):
             lambda x: str(x)[-2:]) + geo_paris['code'].apply(lambda x: str(x)[-2:])
         return geo_paris
 
-
     def process_raw_opendatasoft(self):
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
         all_csv_cols = header_chunk.tolist()
@@ -81,7 +78,6 @@ class Table_inserts(Connectdb):
         df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:], meta=df[
             'Code du département'])  # truncate unwanted '\n'
         df = self.ammend_pourcentage_abs_col(df)
-
         return df
 
     def ammend_pourcentage_abs_col(self, df):
@@ -241,7 +237,6 @@ class Process_france2022(Table_inserts):
     def create_adresse_complete(self, df):
         df['Adresse complète'] = df['lib_du_b_vote'].map(str) + ' ' + df['Libellé de la commune'].map(str)
         df = df.drop(['lib_du_b_vote'], axis=1)
-
         return df
 
     def dask_dataframe(self):
@@ -251,16 +246,16 @@ class Process_france2022(Table_inserts):
         df = self.add_paris(df)
         return df
 
-
-if __name__ == '__main__':
+def insert_france2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
     df_france2017 = process_france2017.dask_dataframe()
     process_france2017.insert_to_db(df_france2017)
 
+
+def insert_france2022():
     process_france2022 = Process_france2022(path_opendatasoft_france2022)
     df_france2022 = process_france2022.dask_dataframe()
     process_france2022.insert_to_db(df_france2022)
-
 
 
 

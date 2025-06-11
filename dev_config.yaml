@@ -3,16 +3,16 @@ database:
 web_deployment:
   production_wsgi_server: False
   port: 5000
-query_aws_table:
-  False
+table_connection:
+  local
 france_metropole_static_html:
   True
 ram_memory_settings:
-  dask_read_block_size: '8MB'
+  percentage_to_use: 10
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
-  download_chunk_size: 10240000
+  path_compressed_geocoords: '/raw/geo_bureaux_de_vote.csv.gz'
   france2017:
     url_datagouv_france2017: "https://static.data.gouv.fr/resources/election-presidentielle-des-23-avril-et-7-mai-2017-resultats-definitifs-du-1er-tour-par-bureaux-de-vote/20170427-100955/PR17_BVot_T1_FE.txt"
     url_opendatasoft_2017: "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/election-presidentielle-2017-resultats-par-bureaux-de-vote-tour-1/exports/csv?lang=fr&use_labels=true&delimiter=%3B"
