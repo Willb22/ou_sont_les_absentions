@@ -33,7 +33,6 @@ class User_france2022:
     pass
 
 
-
 class Table_queries(Connectdb):
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(database_name=database_name, table_connection=table_connection)
@@ -43,20 +42,9 @@ class Table_queries(Connectdb):
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 
-
-
-
 	def francemetropole(self):
 		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
-		# print(self.df.to_dict())
-		# res = KeplerGl(height=500, data={"data_1": self.df.to_dict()}, config=_mapconfig)
 		return res
-	# def all_departements(self):
-	# 	df = self.df
-	# 	res = list(df['dénomination complète'].unique())
-	# 	return res
-
-
 
 	def create_dict_for_map(self, list_data, columns):
 		data_indices = list(range(len(list_data)))
@@ -65,22 +53,11 @@ class Table_queries(Connectdb):
 		return dict_data
 
 
-
-
-
 class Queries_france2017(Table_queries):
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
 		self.table_name = 'france_pres_2017'
 		self.define_mapper_france2017()
-
-	# def create_dict_for_map(self, list_data, columns):
-	# 	data_indices = list(range(len(list_data)))
-	# 	column_label_for_map = [col.replace('_', ' ') for col in columns]
-	# 	dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
-	# 	return dict_data
-
-
 
 	def define_mapper_france2017(self):
 		all_columns = ['longitude',
@@ -102,11 +79,8 @@ class Queries_france2017(Table_queries):
 				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
 			elif col in ['Abstentions', 'Inscrits']:
 				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
-
-
 			else:
 				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
-
 		# Create the Metadata Object
 		metadata_obj = MetaData()
 		france_pres_2017 = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
@@ -114,8 +88,6 @@ class Queries_france2017(Table_queries):
 
 		mapper_registry = registry()
 		mapper_registry.map_imperatively(User_france2017, france_pres_2017)
-
-
 
 	def query_francemetropole(self):
 		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
@@ -134,7 +106,6 @@ class Queries_france2017(Table_queries):
 		def int_dep_val(denomination):
 			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
-
 		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
@@ -160,7 +131,6 @@ class Queries_france2017(Table_queries):
 			communes = [name + ' '+ dep[1] for name in communes]
 			communes.insert(0, "Département entier {}".format(dep[1]))
 			resu[i] = communes
-
 		return resu
 
 	def generate_kepler_map(self, communes_liste):
@@ -192,7 +162,6 @@ class Queries_france2017(Table_queries):
 
 
 class Queries_france2022(Table_queries):
-
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
 		self.table_name = 'france_pres_2022'
@@ -218,8 +187,6 @@ class Queries_france2022(Table_queries):
 				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
 			elif col in ['Abstentions', 'Inscrits']:
 				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
-
-
 			else:
 				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
 
@@ -262,7 +229,6 @@ class Queries_france2022(Table_queries):
 		def int_dep_val(denomination):
 			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
-
 		query_denomination_complete = self.session.query(distinct(User_france2022.dénomination_complète)).all()
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
@@ -276,8 +242,6 @@ class Queries_france2022(Table_queries):
 		logging.info(f'AFTER sort LIST metropole is {metropole}')
 		return metropole
 
-
-
 	def query_liste_communes(self, departements)-> dict:
 		#create dictionary with all communes for entered departements
 		resu = {}
@@ -290,7 +254,6 @@ class Queries_france2022(Table_queries):
 			communes = [name + ' ' + dep[1] for name in communes]
 			communes.insert(0, "Département entier {}".format(dep[1]))
 			resu[i] = communes
-
 		return resu
 
 	def generate_kepler_map(self, communes_liste):
@@ -318,9 +281,6 @@ class Queries_france2022(Table_queries):
 		dict_data = self.create_dict_for_map(list_data, call_col)
 		res = KeplerGl(height=500, data={"data_1": dict_data}, config=dbmapconfig)
 		return res
-
-
-
 
 
 query_france2017 = Queries_france2017(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])

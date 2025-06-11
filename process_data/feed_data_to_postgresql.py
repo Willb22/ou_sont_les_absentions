@@ -60,7 +60,6 @@ class Table_inserts(Connectdb):
             lambda x: str(x)[-2:]) + geo_paris['code'].apply(lambda x: str(x)[-2:])
         return geo_paris
 
-
     def process_raw_opendatasoft(self):
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
         all_csv_cols = header_chunk.tolist()
@@ -81,7 +80,6 @@ class Table_inserts(Connectdb):
         df['Code du département'] = df['Code du département'].apply(lambda x: str(x)[1:], meta=df[
             'Code du département'])  # truncate unwanted '\n'
         df = self.ammend_pourcentage_abs_col(df)
-
         return df
 
     def ammend_pourcentage_abs_col(self, df):
@@ -241,7 +239,6 @@ class Process_france2022(Table_inserts):
     def create_adresse_complete(self, df):
         df['Adresse complète'] = df['lib_du_b_vote'].map(str) + ' ' + df['Libellé de la commune'].map(str)
         df = df.drop(['lib_du_b_vote'], axis=1)
-
         return df
 
     def dask_dataframe(self):
@@ -250,7 +247,6 @@ class Process_france2022(Table_inserts):
         df = self.create_adresse_complete(df)
         df = self.add_paris(df)
         return df
-
 
 def insert_france2017():
     process_france2017 = Process_france2017(path_opendatasoft_france2017)
