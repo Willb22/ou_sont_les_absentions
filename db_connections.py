@@ -1,12 +1,8 @@
 import psycopg2
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import registry
+from sqlalchemy import create_engine
 import os
-import sys
 from resource import getrusage, RUSAGE_SELF
-from config import configurations, logging, now
-
+from config import configurations, logging
 
 def log_memory_after(message):
 	memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"
