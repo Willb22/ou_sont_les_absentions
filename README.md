@@ -1,10 +1,25 @@
-### To view webapp as deployed on AWS
+### To view webapp on local system, execute the following commands from inside the project folder  
+docker-compose up -d db  
+docker-compose up -d datafeed  
+docker-compose up -d webapp  
 
-https://ousontlesabstentions.org
+NB: The appropriate .env file with database credentials must be placed inside the root project folder  
 
-### To view webapp on local system, execute the following commands from inside project folder  
-`pip install -r requirements.txt  
+Then navigate to localhost on any web browser
 
-python flask_app.py`  
 
-Then navigate to localhost on any web browser  
+### Data processing  
+
+Raw datasource URLs are viewable inside configuration yaml files.
+
+```mermaid
+
+stateDiagram-v2
+    OpendataSoft_csv--> DataFrame
+    DataFrame--> PostgreSQL_Database
+
+    DataGouv_csv-->geo_paris_df
+    Geocoord_csv-->geo_paris_df
+    geo_paris_df--> PostgreSQL_Database
+```
+
