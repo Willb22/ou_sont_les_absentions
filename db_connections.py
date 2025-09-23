@@ -1,5 +1,6 @@
 import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct
+from sqlalchemy.orm import registry
 import os
 from resource import getrusage, RUSAGE_SELF
 from config import configurations, logging
@@ -10,7 +11,12 @@ def log_memory_after(message):
 
 database_name = configurations['database']
 table_connection = configurations['table_connection']
-class User:
+
+
+class User_france2017:
+    pass
+
+class User_france2022:
     pass
 
 
@@ -114,3 +120,33 @@ class Connectdb:
 		engine = create_engine(conn_string, pool_size=42)
 		conn_orm = engine.connect()
 		return conn_orm, engine, conn_string
+
+	def define_mapper_france(self):
+		all_columns = ['longitude',
+					   'latitude',
+					   'Code du département',
+					   'Libellé du département',
+					   'dénomination complète',
+					   'Libellé de la commune',
+					   'Pourcentage_Abstentions',
+					   'Inscrits',
+					   'Abstentions',
+					   'Adresse complète']
+
+		columns_for_table = list()
+
+		for col in all_columns:
+			if col in ['Code du département', 'Libellé du département', 'dénomination complète',
+					   'Libellé de la commune', 'Adresse complète']:
+				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
+			elif col in ['Abstentions', 'Inscrits']:
+				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
+			else:
+				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
+		# Create the Metadata Object
+		metadata_obj = MetaData()
+		table_object = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
+		metadata_obj.create_all(self.db)
+
+		mapper_registry = registry()
+		mapper_registry.map_imperatively(self.user, table_object)
