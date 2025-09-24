@@ -133,20 +133,20 @@ class Connectdb:
 					   'Abstentions',
 					   'Adresse complète']
 
-		columns_for_table = list()
+		columns_for_table = [Column('id', Integer, primary_key=True, autoincrement=True)]
 
 		for col in all_columns:
 			if col in ['Code du département', 'Libellé du département', 'dénomination complète',
 					   'Libellé de la commune', 'Adresse complète']:
-				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
+				columns_for_table.append(Column(col, String, key=col.replace(' ', '_')))
 			elif col in ['Abstentions', 'Inscrits']:
-				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
+				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_')))
 			else:
-				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
+				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_')))
 		# Create the Metadata Object
 		metadata_obj = MetaData()
-		table_object = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
+		self.table_object = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
 		metadata_obj.create_all(self.db)
 
 		mapper_registry = registry()
-		mapper_registry.map_imperatively(self.user, table_object)
+		mapper_registry.map_imperatively(self.user, self.table_object)
