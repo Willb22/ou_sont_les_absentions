@@ -1,6 +1,7 @@
 import pandas as pd
 import dask.dataframe as dd
-from sqlalchemy import MetaData, String, Integer, Float
+from sqlalchemy import MetaData, String, Integer, Float, Table
+from sqlalchemy.orm import sessionmaker
 import os, sys
 
 def allow_imports():
@@ -9,7 +10,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name, table_connection
+from db_connections import Connectdb, log_memory_after, database_name, table_connection, User_france2017, User_france2022
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
@@ -22,7 +23,10 @@ path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_source
 path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_opendatasoft_france2022']}"
 
 dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_size']
-
+dask_paris_partitions = configurations['ram_memory_settings']['dask_paris_partitions']
+dask_partitions_table_insert = configurations['ram_memory_settings']['dask_partitions_table_insert']
+insert_rows_per_batch = configurations['ram_memory_settings']['insert_rows_per_batch']
+insert_method = configurations['table_insert_method']
 class Table_inserts(Connectdb):
     def __init__(self):
         super().__init__(database_name=database_name, table_connection=table_connection)
@@ -32,6 +36,7 @@ class Table_inserts(Connectdb):
         self.path_opendatasoft = ''
         self.dask_read_block_size = None
         self.path_geo_coords = path_geo_coords
+
 
 
     def create_denomination_complete(self, df):
@@ -67,6 +72,7 @@ class Table_inserts(Connectdb):
         df = dd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', usecols=col_indices_to_read,
                          blocksize=self.dask_read_block_size,
                          dtype=self.opendatasoft_col_types)
+        logging.info(f'After READ file {self.path_opendatasoft} Dataframe partitions is {df.npartitions}')
         df = df.dropna()
         df = df[self.opendatasoft_cols_to_read]
         nested_coordinates_label = self.opendatasoft_cols_to_read[0]
@@ -91,10 +97,14 @@ class Table_inserts(Connectdb):
         dbExists = self.check_database_exists(conn, cursor)
         if dbExists is False:
             self.create_db(cursor)
-        conn_orm, db, uri = self.connect_orm()
+        self.conn_orm, self.db, self.uri = self.connect_orm()
+        Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
+        self.session = Session()
+
+
         logging.info(log_memory_after('retrieve dataframe before SQL'))
         metadata_obj = MetaData()
-        metadata_obj.create_all(db)
+        metadata_obj.create_all(self.db)
         logging.info(log_memory_after('SQL ORM configs '))
         col_types = dict()
         col_types['Code du département'] = String
@@ -107,15 +117,39 @@ class Table_inserts(Connectdb):
         col_types['longitude'] = Float
         col_types['dénomination complète'] = String
         col_types['Adresse complète'] = String
-        for i in range(df.npartitions):
-            partition = df.get_partition(i)
-            if i == 0:
-                partition.to_sql(self.table_name, uri=uri, if_exists='replace', index=False,
-                                 dtype=col_types)
-            if i > 0:
-                partition.to_sql(self.table_name, uri=uri, if_exists='append', index=False,
-                                 dtype=col_types)
-        logging.info(log_memory_after(f'sql insertion {self.table_name}'))
+        df = df.repartition(npartitions=dask_partitions_table_insert)
+        # df = df.persist()  # if on a distributed system
+
+        logging.info(f'After repartition Dataframe partitions is {df.npartitions}')
+        logging.info(f'insert_rows_per_batch is {insert_rows_per_batch}')
+
+        if insert_method == 'builtin_pandas':
+            for i in range(df.npartitions):
+                partition = df.get_partition(i)
+                if i == 0:
+                    partition.to_sql(self.table_name, uri=self.uri, if_exists='replace', index=False, chunksize = insert_rows_per_batch, method='multi',
+                                     dtype=col_types)
+                if i > 0:
+                    partition.to_sql(self.table_name, uri=self.uri, if_exists='append', index=False, chunksize = insert_rows_per_batch, method='multi',
+                                     dtype=col_types)
+            logging.info(log_memory_after(f'sql insertion {self.table_name}'))
+        else:
+            self.define_mapper_france()
+            partitions = df.to_delayed()
+            logging.info(f'table cols are {self.table_object.c.keys()}')
+            for delayed_partition in partitions:
+                partition = delayed_partition.compute()  # Now it's a Pandas DataFrame
+                data_to_insert = partition.to_dict(orient='records')
+                #logging.info(f'Data to insert is {data_to_insert}')
+                for i, row in enumerate(data_to_insert):
+                    row = {key.replace(' ', '_') : val for key, val in row.items()}
+                    if i < 3:
+                        logging.info(f'row to insert is {row}')
+                    ins = self.table_object.insert().values(**row)
+                    self.conn_orm.execute(ins)
+                    self.conn_orm.commit()
+
+                #session.commit() # If using session
 
 class Process_france2017(Table_inserts):
     def __init__(self, path_opendatasoft):
@@ -130,6 +164,8 @@ class Process_france2017(Table_inserts):
                       'lib_du_b_vote': 'object', 'Code Postal': 'float64'} #, # code postal as float to avoid ValueError
         self.opendatasoft_cols_to_read = ['Coordonnées', 'Code du département', 'Département',
                         'Commune', 'Inscrits', 'Abstentions', '% Abs/Ins', 'Adresse', 'Code Postal']
+        self.user = User_france2017
+        self.table_name = 'france_pres_2017'
 
     def paris_datagouv(self):
         dict_dtype = {'Code du département':'object', 'Code du b.vote':'object', 'Code de la circonscription':'object'}
@@ -158,7 +194,7 @@ class Process_france2017(Table_inserts):
         paris_keep_columns.rename(columns=renamed_cols, inplace=True)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
+        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=dask_paris_partitions)
         dask_paris = self.ammend_pourcentage_abs_col(dask_paris)
         df = dd.concat([df, dask_paris])
         return df
@@ -197,6 +233,8 @@ class Process_france2022(Table_inserts):
                       'lib_du_b_vote': 'object'}
         self.opendatasoft_cols_to_read = ['location', 'Code du département', 'Libellé du département',
                         'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins', 'lib_du_b_vote']
+        self.user = User_france2022
+        self.table_name = 'france_pres_2022'
     def paris_datagouv(self):
         all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';').columns.tolist() # remove encoding="ISO-8859-1" when file from automated download
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
@@ -228,7 +266,7 @@ class Process_france2022(Table_inserts):
         paris_keep_columns.rename(columns=renamed_cols, inplace=True)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=5)
+        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=dask_paris_partitions)
         dask_paris = self.ammend_pourcentage_abs_col(dask_paris)
         df = dd.concat([df, dask_paris])
 
