@@ -132,7 +132,6 @@ class Table_inserts(Connectdb):
                 if i > 0:
                     partition.to_sql(self.table_name, uri=self.uri, if_exists='append', index=False, chunksize = insert_rows_per_batch, method='multi',
                                      dtype=col_types)
-            logging.info(log_memory_after(f'sql insertion {self.table_name}'))
         else:
             self.define_mapper_france()
             partitions = df.to_delayed()
@@ -148,6 +147,7 @@ class Table_inserts(Connectdb):
                     ins = self.table_object.insert().values(**row)
                     self.conn_orm.execute(ins)
                     self.conn_orm.commit()
+        logging.info(log_memory_after(f'sql insertion {self.table_name} with method {insert_method}'))
 
                 #session.commit() # If using session
 
