@@ -26,7 +26,8 @@ dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_si
 dask_paris_partitions = configurations['ram_memory_settings']['dask_paris_partitions']
 dask_partitions_table_insert = configurations['ram_memory_settings']['dask_partitions_table_insert']
 insert_rows_per_batch = configurations['ram_memory_settings']['insert_rows_per_batch']
-insert_method = configurations['table_insert_method']
+insert_method = configurations['table_insertions']['insertion_method']
+orm_multiple_inserts = configurations['table_insertions']['orm_multiple_inserts']
 class Table_inserts(Connectdb):
     def __init__(self):
         super().__init__(database_name=database_name, table_connection=table_connection)
@@ -122,6 +123,9 @@ class Table_inserts(Connectdb):
 
         logging.info(f'After repartition Dataframe partitions is {df.npartitions}')
         logging.info(f'insert_rows_per_batch is {insert_rows_per_batch}')
+        logging.info(f'insert_method is {insert_method}')
+        logging.info(f'orm_multiple_inserts is {orm_multiple_inserts}')
+
 
         if insert_method == 'builtin_pandas':
             for i in range(df.npartitions):
@@ -140,13 +144,16 @@ class Table_inserts(Connectdb):
                 partition = delayed_partition.compute()  # Now it's a Pandas DataFrame
                 data_to_insert = partition.to_dict(orient='records')
                 #logging.info(f'Data to insert is {data_to_insert}')
-                for i, row in enumerate(data_to_insert):
-                    row = {key.replace(' ', '_') : val for key, val in row.items()}
-                    if i < 3:
-                        logging.info(f'row to insert is {row}')
-                    ins = self.table_object.insert().values(**row)
-                    self.conn_orm.execute(ins)
-                    self.conn_orm.commit()
+                if orm_multiple_inserts:
+                    self.conn_orm.execute(self.table_object.insert(), data_to_insert)
+                else:# Abandon this clause, runtime too high
+                    for i, row in enumerate(data_to_insert):
+                        row = {key.replace(' ', '_') : val for key, val in row.items()}
+                        if i < 3:
+                            logging.info(f'row to insert is {row}')
+                        ins = self.table_object.insert().values(**row)
+                        self.conn_orm.execute(ins)
+                        self.conn_orm.commit()
         logging.info(log_memory_after(f'sql insertion {self.table_name} with method {insert_method}'))
 
                 #session.commit() # If using session

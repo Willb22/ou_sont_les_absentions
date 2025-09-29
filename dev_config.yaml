@@ -5,7 +5,9 @@ web_deployment:
   port: 5000
 table_connection:
   docker
-table_insert_method: orm
+table_insertions:
+  insertion_method: orm
+  orm_multiple_inserts: True
 france_metropole_static_html:
   True
 ram_memory_settings:
