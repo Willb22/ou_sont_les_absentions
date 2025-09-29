@@ -66,7 +66,7 @@ class Table_inserts(Connectdb):
     def process_raw_opendatasoft(self):
         header_chunk = pd.read_csv(self.path_opendatasoft, index_col=False, nrows=0, sep=';').columns
         all_csv_cols = header_chunk.tolist()
-        print(f'header chunk read from {self.path_opendatasoft} are {header_chunk}')
+        logging.info(f'header chunk read from {self.path_opendatasoft} are {header_chunk}')
         col_indices_to_read = [all_csv_cols.index(col) for col in self.opendatasoft_cols_to_read]
 
         df = dd.read_csv(self.path_opendatasoft, sep=';', lineterminator='\r', usecols=col_indices_to_read,
