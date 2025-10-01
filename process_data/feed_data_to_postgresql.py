@@ -142,10 +142,11 @@ class Table_inserts(Connectdb):
             logging.info(f'table cols are {self.table_object.c.keys()}')
             for delayed_partition in partitions:
                 partition = delayed_partition.compute()  # Now it's a Pandas DataFrame
-                data_to_insert = partition.to_dict(orient='records')
+                data_to_insert = [{key.replace(' ', '_') : val for key, val in row.items()} for row in partition.to_dict(orient='records')]
                 #logging.info(f'Data to insert is {data_to_insert}')
                 if orm_multiple_inserts:
                     self.conn_orm.execute(self.table_object.insert(), data_to_insert)
+                    self.conn_orm.commit()
                 else:# Abandon this clause, runtime too high
                     for i, row in enumerate(data_to_insert):
                         row = {key.replace(' ', '_') : val for key, val in row.items()}
