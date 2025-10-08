@@ -5,8 +5,6 @@ FROM python:3.10.12
 WORKDIR /home/web_app_project_root
 
 RUN mkdir -p /home/web_app_project_root/web_app
-COPY web_app  /home/web_app_project_root/web_app
-COPY config.py db_connections.py dev_config.yaml ./
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade pip

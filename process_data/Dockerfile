@@ -5,8 +5,7 @@ FROM python:3.10.12
 WORKDIR /home/project_root
 RUN mkdir -p /home/project_root/process_data
 
-COPY process_data  /home/project_root/process_data
-COPY config.py db_connections.py dev_config.yaml requirements.txt ./
+COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install -r /home/project_root/requirements.txt
