@@ -4,11 +4,17 @@ web_deployment:
   production_wsgi_server: False
   port: 5000
 table_connection:
-  local
+  docker
+table_insertions:
+  insertion_method: orm
+  orm_multiple_inserts: True
 france_metropole_static_html:
   True
 ram_memory_settings:
-  percentage_to_use: 10
+  percentage_to_use: 45
+  dask_paris_partitions: 7
+  dask_partitions_table_insert: 199
+  insert_rows_per_batch: 1
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
