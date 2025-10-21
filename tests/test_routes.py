@@ -20,3 +20,36 @@ def test_routes_status_code(client, url):
         print(f'for ROUTE {url}')
         pytest.fail(f"Failed to load page: {e}")
 
+url_choix_departements = ["/france2017/choix_departements", "/france2022/choix_departements"]
+@pytest.mark.parametrize("url", url_choix_departements)
+def test_routes_choix_departements(client, url):
+    try:
+        response = client.get(url)
+        #print(f'for ROUTE {url} RESPONSE IS {response}')
+        html = response.get_data(as_text=True)
+        #print(f'for ROUTE {url} HTML is {html}')
+        assert "Choisissez un ou plusieurs départements" in html , f'Failed for URL: {url}'
+        assert "Seine-Saint-Denis (93)" in html , f'Failed for URL: {url}'
+        assert "Paris (75)" in html , f'Failed for URL: {url}'
+        #assert b"Aucun departement de choisi" in response.data , f'Failed for URL: {url}'
+    except Exception as e:
+        print(f'for ROUTE {url}')
+        pytest.fail(f"Failed to load page: {e}")
+
+user_input_choix_communes = {"choix_des_departements[]": ["Paris (75)", "Seine-Saint-Denis (93)"]}
+url_choix_communes = ["/france2017/choix_communes", "/france2022/choix_communes"]
+query_details=[ (url, user_input_choix_communes) for url in url_choix_communes ]
+@pytest.mark.parametrize("url, query_params", query_details)
+def test_routes_choix_communes(client, url, query_params):
+    try:
+        response = client.get(url, query_string = query_params)
+        #print(f'for ROUTE {url} RESPONSE IS {response}')
+        html = response.get_data(as_text=True)
+        #print(f'for ROUTE {url} HTML is {html}')
+        assert "choisissez une ou plusieurs communes" in html , f'Failed for URL: {url}'
+        assert "Seine-Saint-Denis (93)" in html , f'Failed for URL: {url}'
+        assert "Le Blanc-Mesnil (93)" in html , f'Failed for URL: {url}'
+        #assert b"Aucun departement de choisi" in response.data , f'Failed for URL: {url}'
+    except Exception as e:
+        print(f'for ROUTE {url}')
+        pytest.fail(f"Failed to load page: {e}")
