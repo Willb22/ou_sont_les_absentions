@@ -44,6 +44,12 @@ class Table_queries(Connectdb):
 		dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
 		return dict_data
 
+	def departements_map(self, *args):
+		logging.info(f'INSIDE write_html args is {args}')
+		zones = [f'Département entier ({str(dep_code)})' for dep_code in args]
+		map_to_go = self.generate_kepler_map(zones)
+		return map_to_go
+
 
 class Queries_france2017(Table_queries):
 	def __init__(self, table_connection, france_metropole_static_html):
