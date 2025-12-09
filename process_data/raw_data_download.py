@@ -10,7 +10,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name
+from db_connections import log_memory_after
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)

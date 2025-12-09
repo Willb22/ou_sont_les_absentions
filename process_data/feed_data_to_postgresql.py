@@ -1,6 +1,6 @@
 import pandas as pd
 import dask.dataframe as dd
-from sqlalchemy import MetaData, String, Integer, Float, Table
+from sqlalchemy import MetaData, String, Integer, Float
 from sqlalchemy.orm import sessionmaker
 import os, sys
 
