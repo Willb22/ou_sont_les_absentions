@@ -28,10 +28,6 @@ class Table_queries(Connectdb):
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 
-	def francemetropole(self):
-		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
-		return res
-
 	def create_dict_for_map(self, list_data, columns):
 		data_indices = list(range(len(list_data)))
 		column_label_for_map = [col.replace('_', ' ') for col in columns]
