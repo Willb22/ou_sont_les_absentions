@@ -16,10 +16,10 @@ port = configurations['web_deployment']['port']
 @app.route('/update_server', methods=['POST'])
 def webhook():
 	if request.method == 'POST':
-		repo = git.Repo('/home/ousontlesabstentions/mysite')
+		repo = git.Repo('/home/web_app_project_root')
 		origin = repo.remotes.origin
 		origin.pull()
-		return 'Updated PythonAnywhere successfully', 200
+		return 'Updated code on dev server', 200
 	else:
 		return 'Wrong event type', 400
 
