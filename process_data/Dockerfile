@@ -4,6 +4,7 @@
 FROM python:3.10.12
 WORKDIR /home/project_root
 RUN mkdir -p /home/project_root/process_data
+RUN git config --system --add safe.directory /home/project_root
 
 COPY requirements.txt ./
 

@@ -5,6 +5,7 @@ FROM python:3.10.12
 WORKDIR /home/tests_project_root
 
 #RUN mkdir -p /home/tests_project_root/tests
+RUN git config --system --add safe.directory /home/tests_project_root
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade pip
