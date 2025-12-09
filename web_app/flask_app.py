@@ -1,6 +1,8 @@
 #/usr/bin/python3
 import traceback
-from flask import Flask, request, render_template
+import hmac
+import hashlib, os
+from flask import Flask, request, render_template, abort
 from web_app.models import query_france2017, query_france2022
 from db_connections import log_memory_after
 import git
@@ -16,6 +18,19 @@ port = configurations['web_deployment']['port']
 @app.route('/update_server', methods=['POST'])
 def webhook():
 	if request.method == 'POST':
+		# 1. Read raw request body
+		payload = request.data
+		# 2. Get signature from GitHub header
+		signature = request.headers.get('X-Hub-Signature-256')
+		if signature is None:
+			abort(400, 'Missing signature')
+		# 3. Compute expected signature using your secret
+		secret = bytes(os.environ['GITHUB_WEBHOOK_SECRET'], 'utf-8')
+		expected = 'sha256=' + hmac.new(secret, payload, hashlib.sha256).hexdigest()
+		# 4. Compare signatures safely
+		if not hmac.compare_digest(expected, signature):
+			abort(403, 'Invalid signature')
+
 		repo = git.Repo('/home/web_app_project_root')
 		origin = repo.remotes.origin
 		origin.pull()
