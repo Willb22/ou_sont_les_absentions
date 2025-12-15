@@ -34,4 +34,10 @@ resource "aws_instance" "ubuntu_ec2" {
     Name = "Ubuntu22"
   }
 
+  root_block_device {
+    volume_size = 35       # <-- 35 GB
+    volume_type = "gp3"    # recommended
+  }
+
+
 }
