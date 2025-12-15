@@ -39,5 +39,8 @@ resource "aws_instance" "ubuntu_ec2" {
     volume_type = "gp3"    # recommended
   }
 
+    user_data = templatefile("${path.module}/install_docker_docker_compose.sh", {})
+
+
 
 }
