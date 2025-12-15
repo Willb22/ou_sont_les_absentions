@@ -41,6 +41,15 @@ resource "aws_instance" "ubuntu_ec2" {
 
     user_data = templatefile("${path.module}/install_docker_docker_compose.sh", {})
 
+}
+# -----------------------------
+# Elastic IP
+# -----------------------------
+resource "aws_eip" "web_eip" {
+  instance = aws_instance.ubuntu_ec2.id
+  domain   = "vpc"
 
-
+  tags = {
+    Name = "terraform-web-eip"
+  }
 }
