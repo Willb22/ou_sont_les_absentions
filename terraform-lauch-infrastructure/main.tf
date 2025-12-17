@@ -47,8 +47,7 @@ resource "aws_instance" "ubuntu_ec2" {
   ${file("${path.module}/git_clone_project.sh")}
   EOF
 
-
-
+  
 }
 
 # -----------------------------
@@ -61,5 +60,13 @@ resource "aws_eip" "web_eip" {
   tags = {
     Name = "terraform-web-eip"
   }
+  lifecycle {
+  prevent_destroy = true
+  }
+}
+# Associate EIP to the EC2 instance
+resource "aws_eip_association" "web_eip" {
+  instance_id   = aws_instance.ubuntu_ec2.id
+  allocation_id = aws_eip.web_eip.id
 }
 
