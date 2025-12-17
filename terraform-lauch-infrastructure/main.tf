@@ -39,9 +39,18 @@ resource "aws_instance" "ubuntu_ec2" {
     volume_type = "gp3"    # recommended
   }
 
-    user_data = templatefile("${path.module}/install_docker_docker_compose.sh", {})
+  user_data = <<-EOF
+  #!/bin/bash
+  set -e
+
+  ${file("${path.module}/install_docker_docker_compose.sh")}
+  ${file("${path.module}/git_clone_project.sh")}
+  EOF
+
+
 
 }
+
 # -----------------------------
 # Elastic IP
 # -----------------------------
@@ -53,3 +62,4 @@ resource "aws_eip" "web_eip" {
     Name = "terraform-web-eip"
   }
 }
+
