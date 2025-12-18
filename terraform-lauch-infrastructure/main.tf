@@ -45,9 +45,14 @@ resource "aws_instance" "ubuntu_ec2" {
 
   ${file("${path.module}/install_docker_docker_compose.sh")}
   ${file("${path.module}/git_clone_project.sh")}
-  EOF
 
-  
+  cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
+  ${file("../.env")}
+  ENVEOF
+
+  EOF
+# String interpolation
+
 }
 
 # -----------------------------
