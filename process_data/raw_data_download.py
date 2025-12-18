@@ -10,7 +10,7 @@ def allow_imports():
     if parent_directory not in sys.path:
         sys.path.append(parent_directory)
 allow_imports()
-from db_connections import Connectdb, log_memory_after, database_name
+from db_connections import log_memory_after
 from config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
@@ -60,20 +60,20 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
                 #logging.info(log_memory_after(f'increment inside chunk loop for FILE {destination_filename}'))
 
             logging.info(log_memory_after(f'AFTER write final csv for FILE {destination_filename}'))
-    print(f"CSV file successfully downloaded and saved as {destination_filename}")
+    logging.info(f"CSV file successfully downloaded and saved as {destination_filename}")
 
 def download_geo_coord():
     download_csv_file(url_geo_coords, path_geo_coords, compressed_content=True)
 
 def download_datagouv():
-    print("downloading datagouv france 2017")
+    logging.info("downloading datagouv france 2017")
     download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
-    print("downloading datagouv france 2022")
+    logging.info("downloading datagouv france 2022")
     download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
 
 def download_opendatasoft():
-    print("downloading opendatasoft france 2017")
+    logging.info("downloading opendatasoft france 2017")
     download_csv_file(url_opendatasoft_2017, path_opendatasoft_france2017)
-    print("downloading opendatasoft france 2022")
+    logging.info("downloading opendatasoft france 2022")
     download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
 

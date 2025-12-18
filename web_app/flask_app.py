@@ -1,6 +1,8 @@
 #/usr/bin/python3
 import traceback
-from flask import Flask, request, render_template
+import hmac
+import hashlib, os
+from flask import Flask, request, render_template, abort
 from web_app.models import query_france2017, query_france2022
 from db_connections import log_memory_after
 import git
@@ -13,13 +15,26 @@ port = configurations['web_deployment']['port']
 
 @app.route('/update_server', methods=['POST'])
 def webhook():
-    if request.method == 'POST':
-        repo = git.Repo('/home/ousontlesabstentions/mysite')
-        origin = repo.remotes.origin
-        origin.pull()
-        return 'Updated PythonAnywhere successfully', 200
-    else:
-        return 'Wrong event type', 400
+	if request.method == 'POST':
+		# 1. Read raw request body
+		payload = request.data
+		# 2. Get signature from GitHub header
+		signature = request.headers.get('X-Hub-Signature-256')
+		if signature is None:
+			abort(400, 'Missing signature')
+		# 3. Compute expected signature using your secret
+		secret = bytes(os.environ['GITHUB_WEBHOOK_SECRET'], 'utf-8')
+		expected = 'sha256=' + hmac.new(secret, payload, hashlib.sha256).hexdigest()
+		# 4. Compare signatures safely
+		if not hmac.compare_digest(expected, signature):
+			abort(403, 'Invalid signature')
+
+		repo = git.Repo('/home/web_app_project_root')
+		origin = repo.remotes.origin
+		origin.pull()
+		return 'Updated code on dev server', 200
+	else:
+		return 'Wrong event type', 400
 
 @app.route('/', methods = ['GET'])
 def trial():
@@ -34,6 +49,18 @@ def whyname2017():
 @app.route('/france2017/paris75', methods=['GET'])
 def whyname12017():
 	return render_template('./france_2017/paris.html')
+
+@app.route('/france2017/75_93', methods=['GET'])
+def france2017_generate_75_93():
+	map_to_go = query_france2017.departements_map(75, 93)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
+
+@app.route('/france2017/75_92', methods=['GET'])
+def france2017_generate_75_92():
+	map_to_go = query_france2017.departements_map(75, 92)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
 
 @app.route('/france2017/francemetropole', methods=['GET'])
 def whyname22017():
@@ -72,9 +99,22 @@ def whyname():
 	return res
 
 @app.route('/france2022/paris75', methods=['GET'])
-def whyname1():
-	res = render_template('./france_2022/coming_soon.html')
-	return res
+def france2022_generate_paris():
+	map_to_go = query_france2022.departements_map(75)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
+
+@app.route('/france2022/75_93', methods=['GET'])
+def france2022_generate_75_93():
+	map_to_go = query_france2022.departements_map(75, 93)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
+
+@app.route('/france2022/75_92', methods=['GET'])
+def france2022_generate_75_92():
+	map_to_go = query_france2022.departements_map(75, 92)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
 
 @app.route('/france2022/francemetropole', methods=['GET'])
 def whyname2():
@@ -108,8 +148,8 @@ def test_map():
 	map_to_go = query_france2022.generate_kepler_map(zones)
 	res = map_to_go._repr_html_(center_map=True)
 	return res
-    
-    
+
+
 def run_flask_app():
 	try:
 		#app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https

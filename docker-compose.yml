@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:14.15
     container_name: my_postgres
+    #restart: on-failure
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${PASSPOSTGRES}
@@ -11,6 +12,7 @@ services:
       - "5431:5432"
     env_file:
       - .env
+
 
   datafeed:
     build:
@@ -28,8 +30,24 @@ services:
       context: .
       dockerfile: ./web_app/Dockerfile
     network_mode: "host"
+    restart: on-failure
     env_file:
       - .env
     volumes:
       - .:/home/web_app_project_root
     command: python -m web_app
+
+  test:
+    build:
+      context: .
+      dockerfile: ./tests/Dockerfile
+    network_mode: "host"
+    env_file:
+      - .env
+    volumes:
+      - .:/home/tests_project_root
+    command: pytest
+    depends_on:
+      - db
+      - webapp
+      - datafeed

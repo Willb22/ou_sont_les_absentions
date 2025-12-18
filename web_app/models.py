@@ -1,17 +1,11 @@
 # -*- coding: latin-1 -*-
-import numpy as nd
-import pandas as pd
 import os
 from keplergl import KeplerGl
-
-import psycopg2
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct
+from sqlalchemy import select, distinct
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import registry
-from datetime import datetime
 from config import dbmapconfig
-from db_connections import Connectdb, log_memory_after, database_name, table_connection
-from config import configurations, logging, now
+from db_connections import Connectdb, database_name, table_connection, User_france2017, User_france2022
+from config import configurations, logging
 
 logging.info(f'DATABSE is {database_name}')
 
@@ -25,14 +19,6 @@ path_paris_france2017 = f'{current_directory}/processed/csv_files/france_2017/ge
 path_abstentions_france2022 = f'{current_directory}/processed/csv_files/france_2022/abstentions.csv'
 path_paris_france2022 = f'{current_directory}/processed/csv_files/france_2022/no_data.csv'
 
-
-class User_france2017:
-    pass
-
-class User_france2022:
-    pass
-
-
 class Table_queries(Connectdb):
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(database_name=database_name, table_connection=table_connection)
@@ -42,52 +28,25 @@ class Table_queries(Connectdb):
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 
-	def francemetropole(self):
-		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
-		return res
-
 	def create_dict_for_map(self, list_data, columns):
 		data_indices = list(range(len(list_data)))
 		column_label_for_map = [col.replace('_', ' ') for col in columns]
 		dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
 		return dict_data
 
+	def departements_map(self, *args):
+		logging.info(f'INSIDE write_html args is {args}')
+		zones = [f'Département entier ({str(dep_code)})' for dep_code in args]
+		map_to_go = self.generate_kepler_map(zones)
+		return map_to_go
+
 
 class Queries_france2017(Table_queries):
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
+		self.user = User_france2017
 		self.table_name = 'france_pres_2017'
-		self.define_mapper_france2017()
-
-	def define_mapper_france2017(self):
-		all_columns = ['longitude',
-					   'latitude',
-					   'Code du département',
-					   'Libellé du département',
-					   'dénomination complète',
-					   'Libellé de la commune',
-					   'Pourcentage_Abstentions',
-					   'Inscrits',
-					   'Abstentions',
-					   'Adresse complète']
-
-		columns_for_table = list()
-
-		for col in all_columns:
-			if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-					   'Libellé de la commune', 'Adresse complète']:
-				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
-			elif col in ['Abstentions', 'Inscrits']:
-				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
-			else:
-				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
-		# Create the Metadata Object
-		metadata_obj = MetaData()
-		france_pres_2017 = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
-		metadata_obj.create_all(self.db)
-
-		mapper_registry = registry()
-		mapper_registry.map_imperatively(User_france2017, france_pres_2017)
+		self.define_mapper_france()
 
 	def query_francemetropole(self):
 		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
@@ -164,39 +123,9 @@ class Queries_france2017(Table_queries):
 class Queries_france2022(Table_queries):
 	def __init__(self, table_connection, france_metropole_static_html):
 		super().__init__(table_connection=table_connection, france_metropole_static_html=france_metropole_static_html)
+		self.user = User_france2022
 		self.table_name = 'france_pres_2022'
-		self.define_mapper_france2022()
-
-	def define_mapper_france2022(self):
-		all_columns = ['longitude',
-					   'latitude',
-					   'Code du département',
-					   'Libellé du département',
-					   'dénomination complète',
-					   'Libellé de la commune',
-					   'Pourcentage_Abstentions',
-					   'Inscrits',
-					   'Abstentions',
-					   'Adresse complète']
-
-		columns_for_table = list()
-
-		for col in all_columns:
-			if col in ['Code du département', 'Libellé du département', 'dénomination complète',
-					   'Libellé de la commune', 'Adresse complète']:
-				columns_for_table.append(Column(col, String, key=col.replace(' ', '_'), primary_key=True))
-			elif col in ['Abstentions', 'Inscrits']:
-				columns_for_table.append(Column(col, Integer, key=col.replace(' ', '_'), primary_key=True))
-			else:
-				columns_for_table.append(Column(col, Float, key=col.replace(' ', '_'), primary_key=True))
-
-		# Create the Metadata Object
-		metadata_obj = MetaData()
-		france_pres_2022 = Table(self.table_name, metadata_obj, *(column for column in columns_for_table)) #
-		metadata_obj.create_all(self.db)
-
-		mapper_registry = registry()
-		mapper_registry.map_imperatively(User_france2022, france_pres_2022)
+		self.define_mapper_france()
 
 	def query_francemetropole(self):
 		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
