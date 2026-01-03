@@ -77,3 +77,15 @@ def download_opendatasoft():
     logging.info("downloading opendatasoft france 2022")
     download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
 
+def download_datagouv_france2017():
+    download_csv_file(url_datagouv_france2017, path_datagouv_france2017)
+
+def download_datagouv_france2022():
+    download_csv_file(url_datagouv_france2022, path_datagouv_france2022)
+
+def download_opendatasoft_france2017():
+    download_csv_file(url_datagouv_france2017, path_opendatasoft_france2017)
+
+def download_opendatasoft_france2022():
+    download_csv_file(url_opendatasoft_2022, path_opendatasoft_france2022)
+
