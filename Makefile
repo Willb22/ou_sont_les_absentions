@@ -33,6 +33,10 @@ webhook_dev: ## trigger webhook from outside GitHub
 	@curl -X POST 'http://$(DEV_EC2_IP)/update_server'
 .PHONY: webhook_dev
 
+deploy_db:
+	@docker compose up -d db
+.PHONY: deploy_db
+
 etl_france2017:
 	@docker compose run -d datafeed --stage france2017
 .PHONY: etl_france2017
@@ -45,4 +49,8 @@ etl_extract:
 	@docker compose run -d datafeed --stage extract
 .PHONY: etl_extract
 
-deploy_etl: etl_extract etl_france2017 etl_france2022
+etl_all:
+	@docker compose run -d datafeed --stage all
+.PHONY: etl_extract
+
+deploy_etl: deploy_db etl_all
