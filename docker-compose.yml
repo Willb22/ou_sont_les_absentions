@@ -23,14 +23,13 @@ services:
       - .env
     volumes:
       - .:/home/project_root
-    command: python -m process_data
 
   webapp:
     build:
       context: .
       dockerfile: ./web_app/Dockerfile
     network_mode: "host"
-    restart: on-failure
+    #restart: on-failure
     env_file:
       - .env
     volumes:
