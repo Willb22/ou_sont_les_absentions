@@ -22,7 +22,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 190M
+          memory: 200M
     env_file:
       - .env
     volumes:
