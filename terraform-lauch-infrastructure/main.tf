@@ -53,6 +53,9 @@ resource "aws_instance" "ubuntu_ec2" {
   cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
   ${file("../.env")}
   ENVEOF
+  
+  # Run docker compose
+  ${file("${path.module}/run_docker_compose.sh")}
 
   EOF
 # String interpolation
