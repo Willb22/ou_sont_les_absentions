@@ -66,6 +66,7 @@ class Queries_france2017(Table_queries):
 			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
 		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
+		query_denomination_complete = [row for row in query_denomination_complete if row[0] is not None]
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
 		logging.info(f'LIST all_departements is {all_departements}')
