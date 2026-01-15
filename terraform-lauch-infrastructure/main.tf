@@ -63,6 +63,7 @@ resource "aws_instance" "ubuntu_ec2" {
   sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
   ${file("nginx_dev_conf.txt")}
   NGINXEOF
+  ${file("${path.module}/certbot_ca_certificate.sh")}
 
   EOF
 # String interpolation
