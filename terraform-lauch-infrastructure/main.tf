@@ -59,7 +59,7 @@ resource "aws_instance" "ubuntu_ec2" {
 # Elastic IP
 # -----------------------------
 resource "aws_eip" "web_eip" {
-  instance = aws_instance.ubuntu_ec2.id
+  #instance = aws_instance.ubuntu_ec2.id # Legacy Terraform feature
   domain   = "vpc"
 
   tags = {
