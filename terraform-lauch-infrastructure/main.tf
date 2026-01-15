@@ -26,6 +26,10 @@ data "aws_ami" "ubuntu_22" {
 resource "aws_instance" "ubuntu_ec2" {
   ami           = data.aws_ami.ubuntu_22.id
   instance_type = "t3.micro"
+# Specify Security group for all ports on EC2.
+ vpc_security_group_ids = [
+   aws_security_group.inbound_outbound_access.id
+ ]
 
   # AWS key pair for ssh and scp
   key_name = "first_ec2"

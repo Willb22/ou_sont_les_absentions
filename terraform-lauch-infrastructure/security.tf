@@ -2,10 +2,15 @@ data "http" "my_ip" {
   url = "https://checkip.amazonaws.com"
 }
 
-resource "aws_security_group" "ssh_access" {
-  name        = "allow-ssh"
-  description = "Allow SSH from my public IP"
+data "aws_vpc" "default" {
+  default = true
+}
 
+resource "aws_security_group" "inbound_outbound_access" {
+  name        = "open-ports"
+  description = "Specify ingress and egress rules for EC2"
+  #vpc_id = data.aws_vpc.default.id
+  vpc_id = "vpc-045621ccf81395749"
   ingress {
     description = "SSH from my IP"
     from_port   = 22
@@ -23,6 +28,24 @@ resource "aws_security_group" "ssh_access" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  # HTTP and HTTPS via port 80 and 443
+  ingress {
+  description = "HTTP Port 80"
+  from_port   = 80
+  to_port     = 80
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
+
+  ingress {
+  description = "HTTPS Port 443"
+  from_port   = 443
+  to_port     = 443
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
 
 
   egress {
