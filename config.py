@@ -6,7 +6,7 @@ import psutil
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 current_directory = os.path.dirname(__file__)
-config_filename = f'{current_directory}/dev_config.yaml'
+config_filename = f'{current_directory}/staging_config.yaml'
 log_filename = f'{current_directory}/logs/app_{now}.log'
 
 
