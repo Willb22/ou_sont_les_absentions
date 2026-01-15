@@ -59,6 +59,10 @@ resource "aws_instance" "ubuntu_ec2" {
   ${file("${path.module}/run_docker_compose.sh")}
   # Prepare web environment
   ${file("${path.module}/install_nginx.sh")}
+  
+  sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
+  ${file("nginx_dev_conf.txt")}
+  NGINXEOF
 
   EOF
 # String interpolation
