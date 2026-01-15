@@ -47,6 +47,7 @@ resource "aws_instance" "ubuntu_ec2" {
   #!/bin/bash
   #set -e #Comment here to let script pursue after a failed line
 
+
   ${file("${path.module}/install_docker_docker_compose.sh")}
   ${file("${path.module}/git_clone_project.sh")}
 
@@ -56,6 +57,8 @@ resource "aws_instance" "ubuntu_ec2" {
   
   # Run docker compose
   ${file("${path.module}/run_docker_compose.sh")}
+  # Prepare web environment
+  ${file("${path.module}/install_nginx.sh")}
 
   EOF
 # String interpolation
