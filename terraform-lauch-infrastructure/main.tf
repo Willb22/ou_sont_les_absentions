@@ -45,7 +45,7 @@ resource "aws_instance" "ubuntu_ec2" {
 
   user_data = <<-EOF
   #!/bin/bash
-  set -e
+  #set -e #Comment here to let script pursue after a failed line
 
   ${file("${path.module}/install_docker_docker_compose.sh")}
   ${file("${path.module}/git_clone_project.sh")}
