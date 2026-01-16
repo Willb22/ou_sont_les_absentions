@@ -56,7 +56,7 @@ resource "aws_instance" "ubuntu_ec2" {
   ENVEOF
 
   # Run docker compose
-  ${file("${path.module}/run_docker_compose.sh")}
+  ${file("${path.module}/run_etl.sh")}
   # Prepare web environment
   ${file("${path.module}/install_nginx.sh")}
 
