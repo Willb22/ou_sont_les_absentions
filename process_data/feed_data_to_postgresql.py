@@ -23,7 +23,6 @@ path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_source
 path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_opendatasoft_france2022']}"
 
 dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_size']
-dask_paris_partitions = configurations['ram_memory_settings']['dask_paris_partitions']
 dask_partitions_table_insert = configurations['ram_memory_settings']['dask_partitions_table_insert']
 insert_rows_per_batch = configurations['ram_memory_settings']['insert_rows_per_batch']
 insert_method = configurations['table_insertions']['insertion_method']
@@ -225,7 +224,6 @@ class Process_france2017(Table_inserts):
         paris_keep_columns = paris_keep_columns.rename(columns=renamed_cols)
         paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].astype(str)
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        #dask_paris = dd.from_pandas(paris_keep_columns, npartitions=dask_paris_partitions) # Deprecated as use of Dask is now harmonised
         dask_paris = self.ammend_pourcentage_abs_col(paris_keep_columns)
         df = dd.concat([df, dask_paris])
         return df

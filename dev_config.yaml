@@ -12,7 +12,6 @@ france_metropole_static_html:
   True
 ram_memory_settings:
   percentage_for_download: 30
-  dask_paris_partitions: 7
   percentage_for_file_load: 40
   dask_partitions_table_insert: 30
   insert_rows_per_batch: 5
