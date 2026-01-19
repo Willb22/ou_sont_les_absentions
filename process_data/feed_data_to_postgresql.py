@@ -69,6 +69,7 @@ class Table_inserts(Connectdb):
                 + geo_paris["code_postal"].str[-2:]
                 + geo_paris["code"].astype(str).str[-2:]
         )
+        logging.info(log_memory_after("paris_geo_coords"))
         return geo_paris
 
     def process_raw_opendatasoft(self):
@@ -195,7 +196,6 @@ class Process_france2017(Table_inserts):
         )
         logging.info(log_memory_after("read datagouv csv 2017"))
         df_paris = df[df["Code du département"] == "75"]
-        logging.info(f'INSIDE paris_datagouv After GET PARIS DATAGOUV 2017 file, df_paris has  {df_paris.shape[0].compute()} ROWS and df_paris Code du département has {len(df_paris["Code du département"])} ROWS')
         df_paris["Code du département"] = df_paris["Code du département"].astype(str)
         df_paris["Code du b.vote"] = df_paris["Code du b.vote"].astype(str)
         df_paris["Code de la circonscription"] = (df_paris["Code de la circonscription"].astype(str).str.zfill(2))
@@ -207,12 +207,14 @@ class Process_france2017(Table_inserts):
                 + "_"
                 + df_paris["Code du b.vote"]
         )
+        logging.info(log_memory_after("paris datagouv filtering 2017"))
         return df_paris
 
     def join_for_paris(self):
         df_paris = self.paris_datagouv()
         geo_paris = self.paris_geo_coords()
         df_merged = dd.merge(geo_paris, df_paris, on='col_merge', how="inner")
+        logging.info(log_memory_after("join_for_paris 2017"))
         return df_merged
 
     def add_paris(self, df):
@@ -226,6 +228,7 @@ class Process_france2017(Table_inserts):
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
         dask_paris = self.ammend_pourcentage_abs_col(paris_keep_columns)
         df = dd.concat([df, dask_paris])
+        logging.info(log_memory_after("join_for_paris 2017"))
         return df
 
     def create_adresse_complete(self, df):
@@ -292,6 +295,7 @@ class Process_france2022(Table_inserts):
             assume_missing=True,
             blocksize=self.dask_read_block_size
         )
+        logging.info(log_memory_after("read datagouv csv 2022"))
         df_paris = df[df["Code du département"] == "75"]
         df_paris['Code du département'] = df_paris['Code du département'].astype(str)
         df_paris['Code de la circonscription'] = (
@@ -311,6 +315,7 @@ class Process_france2022(Table_inserts):
                 + '_'
                 + df_paris['Code du b.vote']
         )
+        logging.info(log_memory_after("paris datagouv filtering 2022"))
         return df_paris
 
     def join_for_paris(self):
@@ -323,6 +328,7 @@ class Process_france2022(Table_inserts):
             how='inner',
             #broadcast=True  # safe if geo_paris is smaller
         )
+        logging.info(log_memory_after("join_for_paris 2022"))
         return df_merged
 
     def add_paris(self, df):
@@ -344,6 +350,8 @@ class Process_france2022(Table_inserts):
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
         paris_keep_columns = self.ammend_pourcentage_abs_col(paris_keep_columns)
         df = dd.concat([df, paris_keep_columns])
+        logging.info(log_memory_after("add_paris 2022"))
+
         return df
 
     def create_adresse_complete(self, df):
