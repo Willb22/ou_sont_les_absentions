@@ -49,8 +49,10 @@ def whyname2017():
 	return render_template('./france_2017/menu.html')
 
 @app.route('/france2017/paris75', methods=['GET'])
-def whyname12017():
-	return render_template('./france_2017/paris.html')
+def france2017_generate_paris():
+	map_to_go = query_france2017.departements_map(75)
+	html_map = map_to_go._repr_html_(center_map=True)
+	return html_map
 
 @app.route('/france2017/75_93', methods=['GET'])
 def france2017_generate_75_93():
