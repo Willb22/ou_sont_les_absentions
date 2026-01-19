@@ -184,13 +184,27 @@ class Process_france2017(Table_inserts):
         self.table_name = 'france_pres_2017'
 
     def paris_datagouv(self):
-        dict_dtype = {"Code du département": "object", "Code du b.vote": "object", "Code de la circonscription": "object","Libellé du département": "object"}
+        dict_dtype = {"Code du département": "object",
+                      "Code du b.vote": "object",
+                      "Code de la circonscription": "object",
+                      "Libellé du département": "object"}
+        cols_to_read = [
+            'Code du département',
+            'Libellé du département',
+            'Libellé de la commune',
+            'Code de la circonscription',
+            'Code du b.vote',
+            'Inscrits',
+            'Abstentions',
+            '% Abs/Ins'
+        ]
         df = dd.read_csv(
             self.path_datagouv_france2017,
             sep=";",
             decimal=",",
+            usecols=cols_to_read,
             index_col=False,
-            dtype=dict_dtype,
+            dtype='object',
             assume_missing=True,
             blocksize=self.dask_read_block_size
         )
