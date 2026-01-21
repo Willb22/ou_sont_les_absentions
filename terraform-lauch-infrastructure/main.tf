@@ -56,7 +56,7 @@ resource "aws_instance" "ubuntu_ec2" {
   ${file("../.env")}
   ENVEOF
   ${file("${path.module}/restore_backup_https_cert.sh")}
-
+  ${file("${path.module}/timer_clear_page_cache.sh")}
 
   # Run docker compose
   ${file("${path.module}/run_etl.sh")}
