@@ -27,6 +27,7 @@ resource "aws_instance" "ubuntu_ec2" {
   ami           = data.aws_ami.ubuntu_22.id
   instance_type = "t3.micro"
   # Specify Security group for all ports on EC2.
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
   vpc_security_group_ids = [
     aws_security_group.inbound_outbound_access.id
   ]
@@ -47,13 +48,15 @@ resource "aws_instance" "ubuntu_ec2" {
   user_data = <<-EOF
   #!/bin/bash
   #set -e #Comment here to let script pursue after a failed line
+  apt-get update -y
 
   ${file("${path.module}/install_docker_docker_compose.sh")}
   ${file("${path.module}/git_clone_project.sh")}
-
   cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
   ${file("../.env")}
   ENVEOF
+  ${file("${path.module}/restore_backup_https_cert.sh")}
+
 
   # Run docker compose
   ${file("${path.module}/run_etl.sh")}
