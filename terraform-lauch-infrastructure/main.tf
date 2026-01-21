@@ -70,7 +70,7 @@ resource "aws_instance" "ubuntu_ec2" {
 
 
 
-
+  ${file("${path.module}/run_webapp.sh")}
   EOF
 # String interpolation
 
