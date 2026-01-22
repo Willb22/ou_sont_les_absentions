@@ -19,10 +19,6 @@ services:
       context: .
       dockerfile: ./process_data/Dockerfile
     network_mode: "host"
-    deploy:
-      resources:
-        limits:
-          memory: 200M
     env_file:
       - .env
     volumes:

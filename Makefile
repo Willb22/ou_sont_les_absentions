@@ -38,11 +38,11 @@ deploy_db:
 .PHONY: deploy_db
 
 etl_france2017:
-	@docker compose run -d datafeed --stage france2017
+	@docker compose -f docker-compose.yml -f docker-compose.local.yml run -d --name datafeed_france2017 datafeed --stage france2017
 .PHONY: etl_france2017
 
 etl_france2022:
-	@docker compose run -d datafeed --stage france2022
+	@docker compose -f docker-compose.yml -f docker-compose.local.yml run -d --name datafeed_france2022 datafeed --stage france2022
 .PHONY: etl_france2022
 
 etl_extract:

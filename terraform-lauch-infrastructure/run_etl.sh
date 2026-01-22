@@ -18,12 +18,18 @@ sudo -u ubuntu docker-compose \
 # Run sequential jobs (foreground = blocking)
 sudo -u ubuntu docker-compose \
   --project-directory "$APP_DIR" \
+  -f docker-compose.yml \
+  -f docker-compose.cloudinfra.yml \
   run --name datafeed_extract datafeed --stage extract
 
 sudo -u ubuntu docker-compose \
   --project-directory "$APP_DIR" \
+  -f docker-compose.yml \
+  -f docker-compose.cloudinfra.yml \
   run --name datafeed_france2017 datafeed --stage france2017
 
 sudo -u ubuntu docker-compose \
   --project-directory "$APP_DIR" \
+  -f docker-compose.yml \
+  -f docker-compose.cloudinfra.yml \
   run --name datafeed_france2022 datafeed --stage france2022
