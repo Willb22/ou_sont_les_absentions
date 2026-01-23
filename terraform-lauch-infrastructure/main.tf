@@ -50,12 +50,8 @@ resource "aws_instance" "ubuntu_ec2" {
   #set -e #Comment here to let script pursue after a failed line
   apt-get update -y
 
-  ${file("${path.module}/install_docker_docker_compose.sh")}
-  git clone -b ${local.git_branch} https://github.com/you/repo.git
-  #${file("${path.module}/git_clone_project.sh")}
-  # cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
-  # ${file("../.env")}
-  # ENVEOF
+  #git clone -b ${local.git_branch} https://github.com/you/repo.git
+  su - ubuntu -c "git clone --branch ${local.git_branch} https://github.com/Willb22/ou_sont_les_absentions.git /home/ubuntu/ou_sont_les_absentions"
 
   cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
   ${local.env_file}
@@ -70,26 +66,7 @@ resource "aws_instance" "ubuntu_ec2" {
   PROFILEEOF
   chmod +x /etc/profile.d/myapp_env.sh
 
-  ${file("${path.module}/restore_backup_https_cert.sh")}
-  ${file("${path.module}/timer_clear_page_cache.sh")}
-
-  # Run docker compose
-  ${file("${path.module}/run_etl.sh")}
-  # Prepare web environment
-  ${file("${path.module}/install_nginx.sh")}
-
-  # sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
-  # ${file("nginx_dev_conf.txt")}
-  # NGINXEOF
-
-  sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
-  ${local.nginx_conf}
-  NGINXEOF
-  ${file("${path.module}/certbot_ca_certificate.sh")}
-
-
-
-  ${file("${path.module}/run_webapp.sh")}
+  sudo -u ubuntu bash /home/ubuntu/ou_sont_les_absentions/scripts_ec2_deployment/bootstrap.sh
   EOF
 # String interpolation
 
