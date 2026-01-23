@@ -8,4 +8,4 @@ sudo ufw allow OpenSSH # Do not block ssh into ec2 for now
 #sudo ufw --force enable # Uncomment to enable Firewall
 sudo ufw reload
 #systemctl status nginx
-envsubst < /home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.tpl > /etc/nginx/nginx.conf
+sudo bash -c 'envsubst < /home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.tpl > /etc/nginx/nginx.conf'

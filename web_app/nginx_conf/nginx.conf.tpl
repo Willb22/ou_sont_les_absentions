@@ -6,14 +6,14 @@ http {
   server {
 
     listen 80;
-    server_name ${namespace};
+    server_name ${NAMESPACE};
 
     location ~ /.well-known {
-      root /etc/letsencrypt/live/${namespace}/;
+      root /etc/letsencrypt/live/${NAMESPACE}/;
     }
 
     location / {
-      return 301 https://${namespace};
+      return 301 https://${NAMESPACE};
     }
   }
 }
