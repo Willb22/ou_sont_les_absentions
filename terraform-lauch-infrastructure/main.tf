@@ -51,10 +51,25 @@ resource "aws_instance" "ubuntu_ec2" {
   apt-get update -y
 
   ${file("${path.module}/install_docker_docker_compose.sh")}
-  ${file("${path.module}/git_clone_project.sh")}
+  git clone -b ${local.git_branch} https://github.com/you/repo.git
+  #${file("${path.module}/git_clone_project.sh")}
+  # cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
+  # ${file("../.env")}
+  # ENVEOF
+
   cat << 'ENVEOF' > /home/ubuntu/ou_sont_les_absentions/.env
-  ${file("../.env")}
+  ${local.env_file}
   ENVEOF
+
+  # export all variables for the current shell session
+  export $(grep -v '^#' /home/ubuntu/ou_sont_les_absentions/.env | xargs)
+
+  # persist environment for all login shells
+  cat << 'PROFILEEOF' > /etc/profile.d/myapp_env.sh
+  export $(grep -v '^#' /home/ubuntu/ou_sont_les_absentions/.env | xargs)
+  PROFILEEOF
+  chmod +x /etc/profile.d/myapp_env.sh
+
   ${file("${path.module}/restore_backup_https_cert.sh")}
   ${file("${path.module}/timer_clear_page_cache.sh")}
 
@@ -63,8 +78,12 @@ resource "aws_instance" "ubuntu_ec2" {
   # Prepare web environment
   ${file("${path.module}/install_nginx.sh")}
 
+  # sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
+  # ${file("nginx_dev_conf.txt")}
+  # NGINXEOF
+
   sudo cat << 'NGINXEOF' > /etc/nginx/nginx.conf
-  ${file("nginx_dev_conf.txt")}
+  ${local.nginx_conf}
   NGINXEOF
   ${file("${path.module}/certbot_ca_certificate.sh")}
 
@@ -95,4 +114,12 @@ resource "aws_eip_association" "web_eip" {
   instance_id   = aws_instance.ubuntu_ec2.id
   allocation_id = aws_eip.web_eip.id
 }
+# Prevent accidental prod deploy from non-main branch
+# resource "null_resource" "check_branch" {
+#   count = local.current_git_branch != "main" && var.deploy_target == "prod" ? 1 : 0
+#
+#   provisioner "local-exec" {
+#     command = "echo 'ERROR: Attempted prod deploy from non-main branch!' && exit 1"
+#   }
+# }
 

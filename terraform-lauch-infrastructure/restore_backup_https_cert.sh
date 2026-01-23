@@ -1,5 +1,6 @@
 #!/bin/bash
 CERT_DIR="/etc/letsencrypt"
+S3_OBJ=s3://$BUCKET/letsencrypt/letsencrypt-backup.tar.gz
 set -a      # auto-export variables so are available to child processes like aws
 source /home/ubuntu/ou_sont_les_absentions/.env
 set +a      # avoid auto-export of future variable defined after this line
