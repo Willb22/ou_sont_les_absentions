@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LE_LIVE_DIR="/etc/letsencrypt/live/$DOMAIN"
+LE_LIVE_DIR="/etc/letsencrypt/live/$NAMESPACE"
 
 echo "Checking for existing Let's Encrypt certificate..."
 
@@ -18,7 +18,7 @@ else
   certbot --nginx \
     --non-interactive \
     --agree-tos \
-    -d "$DOMAIN"
+    -d "$NAMESPACE"
 fi
 nginx -t && systemctl restart nginx
 
