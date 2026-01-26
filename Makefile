@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 PYTHON := python3
-include .env
+include .env_local
 
 # Helper
 # ---------
@@ -54,3 +54,11 @@ etl_all:
 .PHONY: etl_extract
 
 deploy_etl: deploy_db etl_all
+
+terraform_deploy_dev:
+	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="dev.tfvars" -auto-approve
+.PHONY: terraform_deploy_dev
+
+terraform_deploy_prod:
+	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="prod.tfvars" -auto-approve
+.PHONY: terraform_deploy_prod
