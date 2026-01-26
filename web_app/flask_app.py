@@ -7,7 +7,7 @@ from web_app.models import query_france2017, query_france2022
 from db_connections import log_memory_after
 import git
 import gevent.pywsgi
-from config import configurations, logging
+from configs.config import configurations, logging
 
 
 app = Flask(__name__, template_folder="./html_files/")

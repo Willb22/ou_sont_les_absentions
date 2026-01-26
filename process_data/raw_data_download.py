@@ -11,7 +11,7 @@ def allow_imports():
         sys.path.append(parent_directory)
 allow_imports()
 from db_connections import log_memory_after
-from config import configurations, logging
+from configs.config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))

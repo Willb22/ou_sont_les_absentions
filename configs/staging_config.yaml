@@ -3,6 +3,9 @@ database:
 web_deployment:
   production_wsgi_server: True
   port: 443
+  namespace: dev.ousontlesabstentions.org
+  https_backup_s3: s3://$BUCKET/letsencrypt/letsencrypt-backup.tar.gz
+  nginx_conf_file: nginx_dev_conf.txt
 table_connection:
   docker
 table_insertions:
@@ -15,6 +18,9 @@ ram_memory_settings:
   percentage_for_file_load: 0
   dask_partitions_table_insert: 250
   insert_rows_per_batch: 1
+  etl_memory_limit: 200M
+ec2_clone_branch:
+  dev
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'

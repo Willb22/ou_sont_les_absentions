@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, In
 from sqlalchemy.orm import registry
 import os
 from resource import getrusage, RUSAGE_SELF
-from config import configurations, logging
+from configs.config import configurations, logging
 
 def log_memory_after(message):
 	memory_message = f"Max Memory after {message} (MiB): {int(getrusage(RUSAGE_SELF).ru_maxrss / 1024)} \n"

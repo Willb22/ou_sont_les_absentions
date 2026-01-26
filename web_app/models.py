@@ -3,9 +3,8 @@ import os
 from keplergl import KeplerGl
 from sqlalchemy import select, distinct
 from sqlalchemy.orm import sessionmaker
-from config import dbmapconfig
+from configs.config import dbmapconfig, configurations, logging
 from db_connections import Connectdb, database_name, table_connection, User_france2017, User_france2022
-from config import configurations, logging
 
 logging.info(f'DATABSE is {database_name}')
 

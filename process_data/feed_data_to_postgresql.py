@@ -11,7 +11,7 @@ def allow_imports():
         sys.path.append(parent_directory)
 allow_imports()
 from db_connections import Connectdb, log_memory_after, database_name, table_connection, User_france2017, User_france2022
-from config import configurations, logging
+from configs.config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -151,6 +151,7 @@ class Table_inserts(Connectdb):
             for delayed_partition in partitions:
                 partition = delayed_partition.compute()  # Now it's a Pandas DataFrame
                 data_to_insert = [{key.replace(' ', '_') : val for key, val in row.items()} for row in partition.to_dict(orient='records')]
+
                 #logging.info(f'Data to insert is {data_to_insert}')
                 if orm_multiple_inserts:
                     self.conn_orm.execute(self.table_object.insert(), data_to_insert)

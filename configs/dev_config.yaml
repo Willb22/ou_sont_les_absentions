@@ -1,17 +1,21 @@
 database:
-  prod_ou_sont_les_abstentions
+  dev_ou_sont_les_abstentions
 web_deployment:
-  production_wsgi_server: True
-  port: 443
+  production_wsgi_server: False
+  port: 5000
 table_connection:
   docker
-table_insert_method: orm
+table_insertions:
+  insertion_method: orm
+  orm_multiple_inserts: True
 france_metropole_static_html:
   True
 ram_memory_settings:
-  percentage_to_use: 10
-  dask_partitions_table_insert: 199
-  insert_rows_per_batch: 1
+  percentage_for_download: 40
+  percentage_for_file_load: 30
+  dask_partitions_table_insert: 12
+  insert_rows_per_batch: 5
+  etl_memory_limit: 4000M
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
@@ -26,3 +30,4 @@ raw_data_sources:
     url_opendatasoft_2022: "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote/exports/csv?lang=fr&timezone=Europe%2FParis&use_labels=true&delimiter=%3B"
     path_datagouv_france2022: '/raw/france_2022/resultats-par-niveau-burvot-t1-france-entiere.txt'
     path_opendatasoft_france2022: '/raw/france_2022/elections-france-presidentielles-2022-1er-tour-par-bureau-de-vote.csv'
+
