@@ -67,14 +67,9 @@ def france2017_generate_75_92():
 	return html_map
 
 @app.route('/france2017/francemetropole', methods=['GET'])
-def whyname22017():
-	if query_france2017.static_francemetropole:
-		html_map = render_template('france_2017/francemetropole.html')
-		logging.info(log_memory_after('load france metropole 2017'))
-	else:
-		map_to_go = query_france2017.query_francemetropole()
-		html_map=map_to_go._repr_html_(center_map=True)
-		logging.info(log_memory_after('load france metropole 2017'))
+def france2017_francemetropole():
+	html_map = render_template('./france_2017/coming_soon.html')
+	logging.info(log_memory_after('load france metropole 2017'))
 	return html_map
 
 @app.route('/france2017/choix_departements', methods = ['GET'])
@@ -121,14 +116,9 @@ def france2022_generate_75_92():
 	return html_map
 
 @app.route('/france2022/francemetropole', methods=['GET'])
-def whyname2():
-	if query_france2022.static_francemetropole:
-		html_map = render_template('./france_2022/coming_soon.html')
-		logging.info(log_memory_after('load france metropole 2022'))
-	else:
-		map_to_go = query_france2022.query_francemetropole()
-		html_map=map_to_go._repr_html_(center_map=True)
-		logging.info(log_memory_after('load france metropole 2022'))
+def france2022_francemetropole():
+	html_map = render_template('./france_2022/coming_soon.html')
+	logging.info(log_memory_after('load france metropole 2022'))
 	return html_map
 
 @app.route('/france2022/choix_departements', methods = ['GET'])
