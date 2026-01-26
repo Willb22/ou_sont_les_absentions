@@ -1,6 +1,6 @@
 import pandas as pd
 import dask.dataframe as dd
-from sqlalchemy import MetaData, String, Integer, Float, Table
+from sqlalchemy import MetaData, String, Integer, Float
 from sqlalchemy.orm import sessionmaker
 import os, sys
 
@@ -11,7 +11,7 @@ def allow_imports():
         sys.path.append(parent_directory)
 allow_imports()
 from db_connections import Connectdb, log_memory_after, database_name, table_connection, User_france2017, User_france2022
-from config import configurations, logging
+from configs.config import configurations, logging
 
 current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -23,7 +23,6 @@ path_datagouv_france2022 = f"{project_directory}{configurations['raw_data_source
 path_opendatasoft_france2022 = f"{project_directory}{configurations['raw_data_sources']['france2022']['path_opendatasoft_france2022']}"
 
 dask_read_block_size = configurations['ram_memory_settings']['dask_read_block_size']
-dask_paris_partitions = configurations['ram_memory_settings']['dask_paris_partitions']
 dask_partitions_table_insert = configurations['ram_memory_settings']['dask_partitions_table_insert']
 insert_rows_per_batch = configurations['ram_memory_settings']['insert_rows_per_batch']
 insert_method = configurations['table_insertions']['insertion_method']
@@ -56,12 +55,21 @@ class Table_inserts(Connectdb):
         df.to_csv(path_write)
 
     def paris_geo_coords(self):
-        geo = pd.read_csv(self.path_geo_coords)
-        postal = geo['code_postal'].fillna('00')
-        is_paris = postal.apply(lambda x: True if x.startswith('75') else False)
-        geo_paris = geo[is_paris]
-        geo_paris['col_merge'] = geo_paris['circonscription_code'] + '_' + geo_paris['code_postal'].apply(
-            lambda x: str(x)[-2:]) + geo_paris['code'].apply(lambda x: str(x)[-2:])
+        geo = dd.read_csv(
+            self.path_geo_coords,
+            dtype="object",
+            assume_missing=True,
+            blocksize=self.dask_read_block_size
+        )
+        geo["code_postal"] = geo["code_postal"].fillna("00")
+        geo_paris = geo[geo["code_postal"].str.startswith("75")]
+        geo_paris["col_merge"] = (
+                geo_paris["circonscription_code"].astype(str)
+                + "_"
+                + geo_paris["code_postal"].str[-2:]
+                + geo_paris["code"].astype(str).str[-2:]
+        )
+        logging.info(log_memory_after("paris_geo_coords"))
         return geo_paris
 
     def process_raw_opendatasoft(self):
@@ -143,6 +151,7 @@ class Table_inserts(Connectdb):
             for delayed_partition in partitions:
                 partition = delayed_partition.compute()  # Now it's a Pandas DataFrame
                 data_to_insert = [{key.replace(' ', '_') : val for key, val in row.items()} for row in partition.to_dict(orient='records')]
+
                 #logging.info(f'Data to insert is {data_to_insert}')
                 if orm_multiple_inserts:
                     self.conn_orm.execute(self.table_object.insert(), data_to_insert)
@@ -176,21 +185,51 @@ class Process_france2017(Table_inserts):
         self.table_name = 'france_pres_2017'
 
     def paris_datagouv(self):
-        dict_dtype = {'Code du département':'object', 'Code du b.vote':'object', 'Code de la circonscription':'object'}
-        df_datagouv_france2017 = pd.read_csv(self.path_datagouv_france2017, sep=';', decimal=',', dtype=dict_dtype, index_col=False)
-        logging.info(log_memory_after('read datagouv csv 2017'))
-        df_paris = df_datagouv_france2017[df_datagouv_france2017['Libellé du département'] == 'Paris']
-        df_paris['Code du b.vote'] = df_paris['Code du b.vote'].apply(lambda x: str(x))
-        df_paris['Code du département'] = df_paris['Code du département'].apply(lambda x: str(x))
-        df_paris['col_merge'] = df_paris['Code du département'].apply(str) + '-' + df_paris[
-            'Code de la circonscription'].apply(str).apply(lambda x: '0' + x if len(x) < 2 else x) + '_' + df_paris['Code du b.vote'].apply(str).apply(
-                                    lambda x: '0' + x if len(x) < 4 else x)
+        dict_dtype = {"Code du département": "object",
+                      "Code du b.vote": "object",
+                      "Code de la circonscription": "object",
+                      "Libellé du département": "object"}
+        cols_to_read = [
+            'Code du département',
+            'Libellé du département',
+            'Libellé de la commune',
+            'Code de la circonscription',
+            'Code du b.vote',
+            'Inscrits',
+            'Abstentions',
+            '% Abs/Ins'
+        ]
+        df = dd.read_csv(
+            self.path_datagouv_france2017,
+            sep=";",
+            decimal=",",
+            usecols=cols_to_read,
+            index_col=False,
+            dtype='object',
+            assume_missing=True,
+            blocksize=self.dask_read_block_size
+        )
+        logging.info(log_memory_after("read datagouv csv 2017"))
+        df_paris = df[df["Code du département"] == "75"]
+        df_paris["Code du département"] = df_paris["Code du département"].astype(str)
+        df_paris["Code du b.vote"] = df_paris["Code du b.vote"].astype(str)
+        df_paris["Code de la circonscription"] = (df_paris["Code de la circonscription"].astype(str).str.zfill(2))
+        df_paris["Code du b.vote"] = df_paris["Code du b.vote"].str.zfill(4)
+        df_paris["col_merge"] = (
+                df_paris["Code du département"]
+                + "-"
+                + df_paris["Code de la circonscription"]
+                + "_"
+                + df_paris["Code du b.vote"]
+        )
+        logging.info(log_memory_after("paris datagouv filtering 2017"))
         return df_paris
 
     def join_for_paris(self):
         df_paris = self.paris_datagouv()
         geo_paris = self.paris_geo_coords()
-        df_merged = pd.merge(geo_paris, df_paris, left_on='col_merge', right_on='col_merge')
+        df_merged = dd.merge(geo_paris, df_paris, on='col_merge', how="inner")
+        logging.info(log_memory_after("join_for_paris 2017"))
         return df_merged
 
     def add_paris(self, df):
@@ -199,12 +238,12 @@ class Process_france2017(Table_inserts):
                         'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
         paris_keep_columns = paris_with_coords[keep_columns]
         renamed_cols = {'geo_adresse': 'Adresse complète'}
-        paris_keep_columns.rename(columns=renamed_cols, inplace=True)
-        paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
+        paris_keep_columns = paris_keep_columns.rename(columns=renamed_cols)
+        paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].astype(str)
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=dask_paris_partitions)
-        dask_paris = self.ammend_pourcentage_abs_col(dask_paris)
+        dask_paris = self.ammend_pourcentage_abs_col(paris_keep_columns)
         df = dd.concat([df, dask_paris])
+        logging.info(log_memory_after("join_for_paris 2017"))
         return df
 
     def create_adresse_complete(self, df):
@@ -244,39 +283,89 @@ class Process_france2022(Table_inserts):
         self.user = User_france2022
         self.table_name = 'france_pres_2022'
     def paris_datagouv(self):
-        all_csv_cols = pd.read_csv(self.path_datagouv_france2022, index_col=False, nrows=0, sep=';').columns.tolist() # remove encoding="ISO-8859-1" when file from automated download
+        all_csv_cols = dd.read_csv(
+            self.path_datagouv_france2022,
+            sep=';',
+            assume_missing=True,
+            blocksize=None
+        ).columns.tolist()
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
-        cols_to_read = ['Code du département', 'Libellé du département',
-                        'Libellé de la commune', 'Inscrits', 'Abstentions', '% Abs/Ins']
-        col_indices_to_read = [all_csv_cols.index('Code du département'), all_csv_cols.index('Libellé du département'),
-                               all_csv_cols.index('Libellé de la commune'),
-                               all_csv_cols.index('Code de la circonscription'),
-                               all_csv_cols.index('Code du b.vote'), all_csv_cols.index('Inscrits'),
-                               all_csv_cols.index('Abstentions'), all_csv_cols.index('% Abs/Ins')]
-        df = pd.read_csv(self.path_datagouv_france2022, index_col=False, sep=';', decimal=',' ,usecols=col_indices_to_read) # remove encoding="ISO-8859-1" when file from automated download
-        df_paris = df[df['Libellé du département'] == 'Paris']
-        df_paris['col_merge'] = df_paris['Code du département'].apply(lambda x : str(x)) + '-' +df_paris['Code de la circonscription'].apply(lambda x: str(x)).apply(lambda x: '0'+x if len(x)< 2 else x) + '_' + df_paris['Code du b.vote'].apply(lambda x: str(x)).apply(lambda x: '0'+x if len(x)< 4 else x)
-
+        cols_to_read = [
+            'Code du département',
+            'Libellé du département',
+            'Libellé de la commune',
+            'Code de la circonscription',
+            'Code du b.vote',
+            'Inscrits',
+            'Abstentions',
+            '% Abs/Ins'
+        ]
+        df = dd.read_csv(
+            self.path_datagouv_france2022,
+            sep=';',
+            decimal=',',
+            usecols=cols_to_read,
+            index_col=False,
+            dtype='object',
+            assume_missing=True,
+            blocksize=self.dask_read_block_size
+        )
+        logging.info(log_memory_after("read datagouv csv 2022"))
+        df_paris = df[df["Code du département"] == "75"]
+        df_paris['Code du département'] = df_paris['Code du département'].astype(str)
+        df_paris['Code de la circonscription'] = (
+            df_paris['Code de la circonscription']
+            .astype(str)
+            .str.zfill(2)
+        )
+        df_paris['Code du b.vote'] = (
+            df_paris['Code du b.vote']
+            .astype(str)
+            .str.zfill(4)
+        )
+        df_paris['col_merge'] = (
+                df_paris['Code du département']
+                + '-'
+                + df_paris['Code de la circonscription']
+                + '_'
+                + df_paris['Code du b.vote']
+        )
+        logging.info(log_memory_after("paris datagouv filtering 2022"))
         return df_paris
 
     def join_for_paris(self):
         df_paris = self.paris_datagouv()
         geo_paris = self.paris_geo_coords()
-        df_merged = pd.merge(geo_paris, df_paris, left_on='col_merge', right_on='col_merge')
+        df_merged = dd.merge(
+            df_paris,
+            geo_paris,
+            on='col_merge',
+            how='inner',
+            #broadcast=True  # safe if geo_paris is smaller
+        )
+        logging.info(log_memory_after("join_for_paris 2022"))
         return df_merged
 
     def add_paris(self, df):
         paris_with_coords = self.join_for_paris()
-        keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
-                        'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
+        keep_columns = [
+            'longitude',
+            'latitude',
+            'Code du département',
+            'Libellé du département',
+            'Libellé de la commune',
+            '% Abs/Ins',
+            'Inscrits',
+            'Abstentions',
+            'geo_adresse'
+        ]
         paris_keep_columns = paris_with_coords[keep_columns]
-        renamed_cols = {'geo_adresse': 'Adresse complète'}
-        paris_keep_columns.rename(columns=renamed_cols, inplace=True)
-        paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
+        paris_keep_columns = paris_keep_columns.rename(columns={'geo_adresse': 'Adresse complète'})
+        paris_keep_columns['Code du département'] = (paris_keep_columns['Code du département'].astype(str))
         paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
-        dask_paris = dd.from_pandas(paris_keep_columns, npartitions=dask_paris_partitions)
-        dask_paris = self.ammend_pourcentage_abs_col(dask_paris)
-        df = dd.concat([df, dask_paris])
+        paris_keep_columns = self.ammend_pourcentage_abs_col(paris_keep_columns)
+        df = dd.concat([df, paris_keep_columns])
+        logging.info(log_memory_after("add_paris 2022"))
 
         return df
 

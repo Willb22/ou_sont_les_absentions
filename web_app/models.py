@@ -1,17 +1,10 @@
 # -*- coding: latin-1 -*-
-import numpy as nd
-import pandas as pd
 import os
 from keplergl import KeplerGl
-
-import psycopg2
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Float, Integer, select, distinct
+from sqlalchemy import select, distinct
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import registry
-from datetime import datetime
-from config import dbmapconfig
-from db_connections import Connectdb, log_memory_after, database_name, table_connection, User_france2017, User_france2022
-from config import configurations, logging
+from configs.config import dbmapconfig, configurations, logging
+from db_connections import Connectdb, database_name, table_connection, User_france2017, User_france2022
 
 logging.info(f'DATABSE is {database_name}')
 
@@ -34,15 +27,17 @@ class Table_queries(Connectdb):
 		Session = sessionmaker(autocommit=False, autoflush=False, bind=self.db)
 		self.session = Session()
 
-	def francemetropole(self):
-		res = KeplerGl(height=500, data={"data_1": self.df}, config=_mapconfig)
-		return res
-
 	def create_dict_for_map(self, list_data, columns):
 		data_indices = list(range(len(list_data)))
 		column_label_for_map = [col.replace('_', ' ') for col in columns]
 		dict_data = {'index': data_indices, 'columns': column_label_for_map, 'data': list_data}
 		return dict_data
+
+	def departements_map(self, *args):
+		logging.info(f'INSIDE write_html args is {args}')
+		zones = [f'Département entier ({str(dep_code)})' for dep_code in args]
+		map_to_go = self.generate_kepler_map(zones)
+		return map_to_go
 
 
 class Queries_france2017(Table_queries):
@@ -70,6 +65,7 @@ class Queries_france2017(Table_queries):
 			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
 		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
+		query_denomination_complete = [row for row in query_denomination_complete if row[0] is not None]
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
 		logging.info(f'LIST all_departements is {all_departements}')

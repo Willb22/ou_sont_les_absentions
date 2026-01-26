@@ -6,10 +6,10 @@ import psutil
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 current_directory = os.path.dirname(__file__)
-config_filename = f'{current_directory}/dev_config.yaml'
-log_filename = f'{current_directory}/logs/app_{now}.log'
-
-
+project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
+log_filename = f'{project_directory}/logs/app_{now}.log'
+APP_ENV = os.getenv("APP_ENV", "dev")  # default for local dev
+config_filename = f"{current_directory}/{APP_ENV}_config.yaml"
 
 
 os.makedirs(os.path.dirname(log_filename), exist_ok=True)
@@ -25,9 +25,9 @@ logging.info(f'{free_mem_MB} MB free' )
 
 with open(config_filename, 'r') as file:
 		configurations = yaml.safe_load(file)
-		configurations['raw_data_sources']['download_chunk_size'] = int(free_mem*configurations['ram_memory_settings']['percentage_to_use']/100)
-		if int(free_mem_MB*configurations['ram_memory_settings']['percentage_to_use']/100):
-			configurations['ram_memory_settings']['dask_read_block_size'] = f"{int(free_mem_MB*configurations['ram_memory_settings']['percentage_to_use']/100)}MB"
+		configurations['raw_data_sources']['download_chunk_size'] = int(free_mem*configurations['ram_memory_settings']['percentage_for_download']/100)
+		if int(free_mem_MB*configurations['ram_memory_settings']['percentage_for_file_load']/100):
+			configurations['ram_memory_settings']['dask_read_block_size'] = f"{int(free_mem_MB*configurations['ram_memory_settings']['percentage_for_file_load']/100)}MB"
 		else:
 			configurations['ram_memory_settings']['dask_read_block_size'] = '1MB'
 #logging.info(f'dask_read_block_size is {configurations['ram_memory_settings']['dask_read_block_size']}')
