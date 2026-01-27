@@ -9,9 +9,9 @@ table_insert_method: orm
 france_metropole_static_html:
   True
 ram_memory_settings:
-  percentage_to_use: 10
-  dask_partitions_table_insert: 199
-  insert_rows_per_batch: 0
+  percentage_for_download: 30
+  percentage_for_file_load: 0
+  dask_partitions_table_insert: 250
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
