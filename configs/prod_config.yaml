@@ -12,6 +12,7 @@ ram_memory_settings:
   percentage_for_download: 30
   percentage_for_file_load: 0
   dask_partitions_table_insert: 250
+  insert_rows_per_batch: 1
 raw_data_sources:
   url_geo_coords: 'http://data.cquest.org/elections/bureaux_de_vote/geo_bureaux_de_vote.csv.gz'
   path_geo_coords: '/raw/geo_bureaux_de_vote.csv'
