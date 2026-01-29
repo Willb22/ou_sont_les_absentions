@@ -22,7 +22,6 @@ data "aws_ami" "ubuntu_22" {
   }
 }
 
-
 resource "aws_instance" "ubuntu_ec2" {
   ami           = data.aws_ami.ubuntu_22.id
   instance_type = "t3.micro"
@@ -36,7 +35,7 @@ resource "aws_instance" "ubuntu_ec2" {
   key_name = "first_ec2"
 
   tags = {
-    Name = "dev"
+    Name = "${var.deploy_target}-ubuntu-22"
   }
   #associate_public_ip_address = false # Disable ephemeral public IPs explicitly
 
@@ -80,7 +79,7 @@ resource "aws_eip" "web_eip" {
   domain   = "vpc"
 
   tags = {
-    Name = "terraform-web-eip"
+    Name = "${var.deploy_target}-terraform-web-eip"
   }
   lifecycle {
   prevent_destroy = true
@@ -99,4 +98,3 @@ resource "aws_eip_association" "web_eip" {
 #     command = "echo 'ERROR: Attempted prod deploy from non-main branch!' && exit 1"
 #   }
 # }
-

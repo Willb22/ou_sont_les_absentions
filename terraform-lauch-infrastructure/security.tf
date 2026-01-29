@@ -7,7 +7,7 @@ data "aws_vpc" "default" {
 }
 
 resource "aws_security_group" "inbound_outbound_access" {
-  name        = "open-ports"
+  name        = "open-ports-${var.deploy_target}"
   description = "Specify ingress and egress rules for EC2"
   #vpc_id = data.aws_vpc.default.id
   vpc_id = "vpc-045621ccf81395749"
