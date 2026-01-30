@@ -5,9 +5,13 @@ docker-compose up -d webapp
 
 NB: The appropriate .env file with database credentials must be placed inside the root project folder  
 
-Then navigate to localhost on any web browser
+Then navigate to localhost on any web browser  
 
+### To view the webapp as deployed on AWS, click on one of the following links:  
 
+https://dev.ousontlesabstentions.org/  
+https://stage.ousontlesabstentions.org/  
+https://ousontlesabstentions.org/
 
 
 ### Data processing  
