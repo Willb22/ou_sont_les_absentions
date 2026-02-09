@@ -50,6 +50,26 @@ etl_all:
 
 deploy_etl: deploy_db etl_all
 
+terraform_workspace_dev:
+	@terraform -chdir=$(TERRAFORM_DIR) workspace select dev
+.PHONY: terraform_workspace_dev
+
+terraform_workspace_prod:
+	@terraform -chdir=$(TERRAFORM_DIR) workspace select prod
+.PHONY: terraform_workspace_prod
+
+terraform_init:
+	@terraform -chdir=$(TERRAFORM_DIR) init
+.PHONY: terraform_init
+
+terraform_taint_ec2:
+	@terraform -chdir=$(TERRAFORM_DIR) taint aws_instance.ubuntu_ec2
+.PHONY: terraform_taint_ec2
+
+terraform_plan:
+	@terraform -chdir=$(TERRAFORM_DIR) plan
+.PHONY: terraform_plan
+
 terraform_deploy_dev:
 	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="dev.tfvars" -auto-approve
 .PHONY: terraform_deploy_dev
