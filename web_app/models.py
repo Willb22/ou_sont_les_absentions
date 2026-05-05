@@ -66,11 +66,11 @@ class Queries_france2017(Table_queries):
 
 	def query_all_departements(self):
 		def dep_val(denomination):
-			code_dep =denomination.strip(')').split('(')[-1][-2:]
+			code_dep = denomination.strip(')').split('(')[-1][-2:]
 			return code_dep
 
 		def int_dep_val(denomination):
-			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
+			code_dep = int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
 
 		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
@@ -135,7 +135,7 @@ class Queries_france2017(Table_queries):
 			data = self.session.execute(iter_stm).all()
 			data_chunks.extend(data)
 
-		list_data  = [list(row) for row in data_chunks]
+		list_data = [list(row) for row in data_chunks]
 		dict_data = self.create_dict_for_map(list_data, call_col)
 		res = KeplerGl(height=500, data={"data_1": dict_data}, config=dbmapconfig)
 		return res
@@ -256,4 +256,4 @@ class Queries_france2022(Table_queries):
 
 
 query_france2017 = Queries_france2017(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])
-query_france2022 = Queries_france2022(table_connection=table_connection,france_metropole_static_html=configurations['france_metropole_static_html'])
+query_france2022 = Queries_france2022(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])

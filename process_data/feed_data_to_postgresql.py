@@ -139,10 +139,10 @@ class Table_inserts(Connectdb):
             for i in range(df.npartitions):
                 partition = df.get_partition(i)
                 if i == 0:
-                    partition.to_sql(self.table_name, uri=self.uri, if_exists='replace', index=False, chunksize = insert_rows_per_batch, method='multi',
+                    partition.to_sql(self.table_name, uri=self.uri, if_exists='replace', index=False, chunksize=insert_rows_per_batch, method='multi',
                                      dtype=col_types)
                 if i > 0:
-                    partition.to_sql(self.table_name, uri=self.uri, if_exists='append', index=False, chunksize = insert_rows_per_batch, method='multi',
+                    partition.to_sql(self.table_name, uri=self.uri, if_exists='append', index=False, chunksize=insert_rows_per_batch, method='multi',
                                      dtype=col_types)
         else:
             self.define_mapper_france()
