@@ -145,14 +145,14 @@ def test_map():
 
 
 def run_flask_app():
-	try:
-		#app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
-		#app.run(threaded=True, host='0.0.0.0', port=5000)
-		#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
-		if production_wsgi_server:
-			app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', port), app, keyfile='key.pem', certfile='cert.pem')
-			app_server.serve_forever()
-		else:
-			app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
-	except Exception as e:
-		traceback.format_exc()
+	#app.run(threaded=True, ssl_context=('cert.pem', 'key.pem'), port=5000) # attempt https
+	#app.run(threaded=True, host='0.0.0.0', port=5000)
+	#app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', 5000), app)
+	if production_wsgi_server:
+		app_server = gevent.pywsgi.WSGIServer(('0.0.0.0', port), app, keyfile='key.pem', certfile='cert.pem')
+		app_server.serve_forever()
+	else:
+		app.run(threaded=True, host='0.0.0.0', port=port, debug=True)
+
+
+		
