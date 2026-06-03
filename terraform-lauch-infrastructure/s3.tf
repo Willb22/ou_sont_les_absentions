@@ -27,11 +27,11 @@ resource "aws_s3_bucket_public_access_block" "letsencrypt" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-
+# letsencrypt_bucket_name variable declared here and defined in tfvars file
 variable "letsencrypt_bucket_name" {
   description = "S3 bucket storing letsencrypt certs"
   type        = string
-  default     = "ousontlesabstentions-letsencrypt-dev-ec2"
+  #default     = "ousontlesabstentions-letsencrypt-dev-ec2"
 
 }
 

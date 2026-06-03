@@ -1,4 +1,4 @@
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 import os
 from keplergl import KeplerGl
 from sqlalchemy import select, distinct
@@ -9,14 +9,12 @@ from db_connections import Connectdb, database_name, table_connection, User_fran
 logging.info(f'DATABSE is {database_name}')
 
 
-
-
-
 current_directory = os.path.dirname(__file__)
 path_abstentions_france2017 = f'{current_directory}/processed/csv_files/france_2017/abstentions.csv'
 path_paris_france2017 = f'{current_directory}/processed/csv_files/france_2017/geo_paris.csv'
 path_abstentions_france2022 = f'{current_directory}/processed/csv_files/france_2022/abstentions.csv'
 path_paris_france2022 = f'{current_directory}/processed/csv_files/france_2022/no_data.csv'
+
 
 class Table_queries(Connectdb):
 	def __init__(self, table_connection, france_metropole_static_html):
@@ -35,7 +33,7 @@ class Table_queries(Connectdb):
 
 	def departements_map(self, *args):
 		logging.info(f'INSIDE write_html args is {args}')
-		zones = [f'Département entier ({str(dep_code)})' for dep_code in args]
+		zones = [f'DÃ©partement entier ({str(dep_code)})' for dep_code in args]
 		map_to_go = self.generate_kepler_map(zones)
 		return map_to_go
 
@@ -48,7 +46,16 @@ class Queries_france2017(Table_queries):
 		self.define_mapper_france()
 
 	def query_francemetropole(self):
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = [
+			'longitude',
+			'latitude',
+			'LibellÃ©_du_dÃ©partement',
+			'LibellÃ©_de_la_commune',
+			'Pourcentage_Abstentions',
+			'Inscrits',
+			'Abstentions',
+			'Adresse_complÃ¨te',
+		]
 		ref_to_cols = [User_france2017.__dict__[key] for key in call_col]
 		iter_stm = select(*ref_to_cols)
 		data = self.session.execute(iter_stm).all()
@@ -59,12 +66,14 @@ class Queries_france2017(Table_queries):
 
 	def query_all_departements(self):
 		def dep_val(denomination):
-			code_dep =denomination.strip(')').split('(')[-1][-2:]
+			code_dep = denomination.strip(')').split('(')[-1][-2:]
 			return code_dep
+
 		def int_dep_val(denomination):
-			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
+			code_dep = int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
-		query_denomination_complete = self.session.query(distinct(User_france2017.dénomination_complète)).all()
+
+		query_denomination_complete = self.session.query(distinct(User_france2017.dÃ©nomination_complÃ¨te)).all()
 		query_denomination_complete = [row for row in query_denomination_complete if row[0] is not None]
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
@@ -79,22 +88,32 @@ class Queries_france2017(Table_queries):
 		return metropole
 
 	def query_liste_communes(self, departements)-> dict:
-		#create dictionary with all communes for entered departements
+		# create dictionary with all communes for entered departements
 		resu = {}
 		for i in departements:
 			dep = i.strip(' ').split(' ')
-			query = self.session.query(User_france2017.Libellé_de_la_commune).filter(
-				User_france2017.dénomination_complète == f"{i}").distinct()#Beware of f"{i} " with trailing space
+			query = self.session.query(User_france2017.LibellÃ©_de_la_commune).filter(
+				User_france2017.dÃ©nomination_complÃ¨te == f"{i}"
+			).distinct()  # Beware of f"{i} " with trailing space
 			communes = [row[0] for row in query.all()]
 			communes.sort()
-			communes = [name + ' '+ dep[1] for name in communes]
-			communes.insert(0, "Département entier {}".format(dep[1]))
+			communes = [name + ' ' + dep[1] for name in communes]
+			communes.insert(0, "DÃ©partement entier {}".format(dep[1]))
 			resu[i] = communes
 		return resu
 
 	def generate_kepler_map(self, communes_liste):
 		deps_communes = list()
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = [
+			'longitude',
+			'latitude',
+			'LibellÃ©_du_dÃ©partement',
+			'LibellÃ©_de_la_commune',
+			'Pourcentage_Abstentions',
+			'Inscrits',
+			'Abstentions',
+			'Adresse_complÃ¨te',
+		]
 		ref_to_cols = [User_france2017.__dict__[key] for key in call_col]
 		data_chunks = list()
 		for i in communes_liste:
@@ -103,21 +122,23 @@ class Queries_france2017(Table_queries):
 				return 'Problem in commune name'
 			new[0] = new[0].strip(' ')
 			new[-1] = new[-1].strip('( )')
-			if 'Département entier' in new[0]:
-				iter_stm = select(*ref_to_cols).where(User_france2017.Code_du_département.in_([new[-1]]))
+			if 'DÃ©partement entier' in new[0]:
+				iter_stm = select(*ref_to_cols).where(User_france2017.Code_du_dÃ©partement.in_([new[-1]]))
 				data = self.session.execute(iter_stm).all()
 				data_chunks.extend(data)
 				continue
 			deps_communes.append(new)
-			iter_stm = select(*ref_to_cols).where(User_france2017.Libellé_de_la_commune.in_([new[0]]), User_france2017.Code_du_département.in_([new[-1]]))
+			iter_stm = select(*ref_to_cols).where(
+				User_france2017.LibellÃ©_de_la_commune.in_([new[0]]),
+				User_france2017.Code_du_dÃ©partement.in_([new[-1]]),
+			)
 			data = self.session.execute(iter_stm).all()
 			data_chunks.extend(data)
 
-		list_data  = [list(row) for row in data_chunks]
+		list_data = [list(row) for row in data_chunks]
 		dict_data = self.create_dict_for_map(list_data, call_col)
 		res = KeplerGl(height=500, data={"data_1": dict_data}, config=dbmapconfig)
 		return res
-
 
 
 class Queries_france2022(Table_queries):
@@ -128,7 +149,16 @@ class Queries_france2022(Table_queries):
 		self.define_mapper_france()
 
 	def query_francemetropole(self):
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune','Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = [
+			'longitude',
+			'latitude',
+			'LibellÃ©_du_dÃ©partement',
+			'LibellÃ©_de_la_commune',
+			'Pourcentage_Abstentions',
+			'Inscrits',
+			'Abstentions',
+			'Adresse_complÃ¨te',
+		]
 		ref_to_cols = [User_france2022.__dict__[key] for key in call_col]
 		iter_stm = select(*ref_to_cols)
 		data = self.session.execute(iter_stm).all()
@@ -139,26 +169,26 @@ class Queries_france2022(Table_queries):
 
 	def add_paris(self, df):
 		# paris_with_coords = pd.read_csv(self.path_paris)
-		# keep_columns = ['longitude', 'latitude', 'Code du département', 'Libellé du département',
-		# 				'Libellé de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
+		# keep_columns = ['longitude', 'latitude', 'Code du dÃ©partement', 'LibellÃ© du dÃ©partement',
+		# 				'LibellÃ© de la commune', '% Abs/Ins', 'Inscrits', 'Abstentions', 'geo_adresse']
 		# paris_keep_columns = paris_with_coords[keep_columns]
-		# renamed_cols = {'geo_adresse': 'Adresse complète'}
+		# renamed_cols = {'geo_adresse': 'Adresse complÃ¨te'}
 		# paris_keep_columns.rename(columns=renamed_cols, inplace=True)
-		# paris_keep_columns['Code du département'] = paris_keep_columns['Code du département'].apply(lambda x: str(x))
+		# paris_keep_columns['Code du dÃ©partement'] = paris_keep_columns['Code du dÃ©partement'].apply(lambda x: str(x))
 		# paris_keep_columns = self.create_denomination_complete(paris_keep_columns)
 		# df = df.append(paris_keep_columns)
 		return df
 
-
 	def query_all_departements(self):
 		def dep_val(denomination):
-			code_dep =denomination.strip(')').split('(')[-1][-2:]
+			code_dep = denomination.strip(')').split('(')[-1][-2:]
 			return code_dep
 
 		def int_dep_val(denomination):
-			code_dep =int(denomination.strip(')').split('(')[-1][-2:])
+			code_dep = int(denomination.strip(')').split('(')[-1][-2:])
 			return code_dep
-		query_denomination_complete = self.session.query(distinct(User_france2022.dénomination_complète)).all()
+
+		query_denomination_complete = self.session.query(distinct(User_france2022.dÃ©nomination_complÃ¨te)).all()
 		logging.info(f'RAW query DISTINCT denomination complete IS {query_denomination_complete}')
 		all_departements = [row[0].strip(' ') for row in query_denomination_complete]
 		logging.info(f'LIST all_departements is {all_departements}')
@@ -171,23 +201,33 @@ class Queries_france2022(Table_queries):
 		logging.info(f'AFTER sort LIST metropole is {metropole}')
 		return metropole
 
-	def query_liste_communes(self, departements)-> dict:
-		#create dictionary with all communes for entered departements
+	def query_liste_communes(self, departements) -> dict:
+		# create dictionary with all communes for entered departements
 		resu = {}
 		for i in departements:
 			dep = i.strip(' ').split(' ')
-			query = self.session.query(User_france2022.Libellé_de_la_commune).filter(
-				User_france2022.dénomination_complète == f"{i}").distinct()#Beware of f"{i} " with trailing space
+			query = self.session.query(User_france2022.LibellÃ©_de_la_commune).filter(
+				User_france2022.dÃ©nomination_complÃ¨te == f"{i}"
+			).distinct()  # Beware of f"{i} " with trailing space
 			communes = [row[0] for row in query.all()]
 			communes.sort()
 			communes = [name + ' ' + dep[1] for name in communes]
-			communes.insert(0, "Département entier {}".format(dep[1]))
+			communes.insert(0, "DÃ©partement entier {}".format(dep[1]))
 			resu[i] = communes
 		return resu
 
 	def generate_kepler_map(self, communes_liste):
 		deps_communes = list()
-		call_col = ['longitude', 'latitude', 'Libellé_du_département', 'Libellé_de_la_commune', 'Pourcentage_Abstentions', 'Inscrits', 'Abstentions', 'Adresse_complète']
+		call_col = [
+			'longitude',
+			'latitude',
+			'LibellÃ©_du_dÃ©partement',
+			'LibellÃ©_de_la_commune',
+			'Pourcentage_Abstentions',
+			'Inscrits',
+			'Abstentions',
+			'Adresse_complÃ¨te',
+		]
 		ref_to_cols = [User_france2022.__dict__[key] for key in call_col]
 		data_chunks = list()
 		for i in communes_liste:
@@ -196,13 +236,16 @@ class Queries_france2022(Table_queries):
 				return 'Problem in commune name'
 			new[0] = new[0].strip(' ')
 			new[-1] = new[-1].strip('( )')
-			if 'Département entier' in new[0]:
-				iter_stm = select(*ref_to_cols).where(User_france2022.Code_du_département.in_([new[-1]]))
+			if 'DÃ©partement entier' in new[0]:
+				iter_stm = select(*ref_to_cols).where(User_france2022.Code_du_dÃ©partement.in_([new[-1]]))
 				data = self.session.execute(iter_stm).all()
 				data_chunks.extend(data)
 				continue
 			deps_communes.append(new)
-			iter_stm = select(*ref_to_cols).where(User_france2022.Libellé_de_la_commune.in_([new[0]]), User_france2022.Code_du_département.in_([new[-1]]))
+			iter_stm = select(*ref_to_cols).where(
+				User_france2022.LibellÃ©_de_la_commune.in_([new[0]]),
+				User_france2022.Code_du_dÃ©partement.in_([new[-1]]),
+			)
 			data = self.session.execute(iter_stm).all()
 			data_chunks.extend(data)
 
@@ -213,5 +256,4 @@ class Queries_france2022(Table_queries):
 
 
 query_france2017 = Queries_france2017(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])
-query_france2022 = Queries_france2022(table_connection=table_connection,france_metropole_static_html=configurations['france_metropole_static_html'])
-
+query_france2022 = Queries_france2022(table_connection=table_connection, france_metropole_static_html=configurations['france_metropole_static_html'])

@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ec2_letsencrypt_role" {
-  name = "ec2-letsencrypt-role"
+  name = "ec2-letsencrypt-${var.deploy_target}-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -12,7 +12,7 @@ resource "aws_iam_role" "ec2_letsencrypt_role" {
 }
 
 resource "aws_iam_policy" "letsencrypt_s3_policy" {
-  name = "letsencrypt-s3-policy"
+  name = "letsencrypt-s3-${var.deploy_target}-policy"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -37,7 +37,7 @@ resource "aws_iam_role_policy_attachment" "attach_s3" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2-letsencrypt-profile"
+  name = "ec2-letsencrypt-${var.deploy_target}-profile"
   role = aws_iam_role.ec2_letsencrypt_role.name
 }
 
