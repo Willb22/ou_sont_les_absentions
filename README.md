@@ -3,6 +3,8 @@ docker-compose up -d db
 docker-compose up -d datafeed  
 docker-compose up -d webapp  
 
+Or use tailored commands defined in the Makefile.  
+
 NB: The appropriate .env file with database credentials must be placed inside the root project folder  
 
 Then navigate to localhost on any web browser  
@@ -16,7 +18,9 @@ https://ousontlesabstentions.org/
 
 ### Data processing  
 
-Raw datasource URLs are viewable inside configuration yaml files.
+Raw datasource URLs are viewable inside configuration yaml files.  
+
+For French Presidential elections 2022 and 2017, the ETL process can be illustrated as follows:
 
 ```mermaid
 
