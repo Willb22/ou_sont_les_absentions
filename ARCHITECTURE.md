@@ -5,26 +5,34 @@
 
 ## Overview
 
+
 ```mermaid
 flowchart LR
-  subgraph Internet
-    User[Browser]
-    DataGouv[data.gouv.fr / OpenDataSoft]
-  end
+    User[Domain Name<br/>ousontlesabstentions.org]
 
-  subgraph AWS["AWS Cloud Services"]
-    Route53[Route53]
-    EC2[EC2 t3.micro]
-    RDS[(RDS PostgreSQL)]
-    S3[S3 — Let's Encrypt certs for https]
+    subgraph AWS["AWS Cloud Services"]
+        Route53[Route 53 DNS]
+        IP[Elastic IP]
 
-    Route53 --> EC2
-    EC2 --> RDS
-    EC2 --> S3
-  end
+        subgraph EC2["EC2"]
+            App[Docker WebApp]
+            PostgreSQL[(Docker PostgreSQL)]
+            ETL[Docker ETL]
+        end
 
-  User --> Route53
-  DataGouv --> EC2
+        S3[S3<br/>Let's Encrypt certs]
+
+        Route53 --- IP
+        IP --- App
+        App --- PostgreSQL
+        App --- S3
+        ETL --- PostgreSQL
+    end
+
+    DataGouv[Public Raw Data]
+
+    User --- Route53
+    DataGouv --- ETL
 
    ```
 
