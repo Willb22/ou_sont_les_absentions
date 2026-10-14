@@ -189,6 +189,18 @@ class Process_france2017(Table_inserts):
                       "Code du b.vote": "object",
                       "Code de la circonscription": "object",
                       "Libellé du département": "object"}
+        
+        all_csv_cols = dd.read_csv(
+            self.path_datagouv_france2017,
+            sep=';',
+            decimal=",",
+            assume_missing=True,
+            index_col=False,
+            blocksize=self.dask_read_block_size,
+            encoding='ISO-8859-1'
+        ).columns.tolist()
+        logging.info(f'header chunk read from csv file datagouv 2017 are {all_csv_cols}')
+
         cols_to_read = [
             'Code du département',
             'Libellé du département',
@@ -207,7 +219,9 @@ class Process_france2017(Table_inserts):
             index_col=False,
             dtype='object',
             assume_missing=True,
-            blocksize=self.dask_read_block_size
+            blocksize=self.dask_read_block_size,
+            encoding='ISO-8859-1'
+
         )
         logging.info(log_memory_after("read datagouv csv 2017"))
         df_paris = df[df["Code du département"] == "75"]
@@ -287,7 +301,9 @@ class Process_france2022(Table_inserts):
             self.path_datagouv_france2022,
             sep=';',
             assume_missing=True,
-            blocksize=None
+            blocksize=None,
+            encoding='ISO-8859-1'
+
         ).columns.tolist()
         logging.info(f'header chunk read from csv file datagouv 2022 are {all_csv_cols}')
         cols_to_read = [
@@ -308,7 +324,9 @@ class Process_france2022(Table_inserts):
             index_col=False,
             dtype='object',
             assume_missing=True,
-            blocksize=self.dask_read_block_size
+            blocksize=self.dask_read_block_size,
+            encoding='ISO-8859-1'
+
         )
         logging.info(log_memory_after("read datagouv csv 2022"))
         df_paris = df[df["Code du département"] == "75"]
