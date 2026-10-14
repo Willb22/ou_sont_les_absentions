@@ -54,9 +54,9 @@ def download_csv_file(url_csv_file, destination_filename, compressed_content=Fal
         r = session.get(url_csv_file, stream=True)
         logging.info(log_memory_after(f'get response for FILE {destination_filename}'))
         r.raise_for_status()
-        with open(destination_filename, 'wt') as out_file:
-            for chunk in r.iter_content(chunk_size=raw_data_download_chunk_size, decode_unicode=True): # chunk_size is a number of bytes
-                out_file.write(str(chunk))
+        with open(destination_filename, 'wb') as out_file:
+            for chunk in r.iter_content(chunk_size=raw_data_download_chunk_size): # chunk_size is a number of bytes
+                out_file.write(chunk)
                 #logging.info(log_memory_after(f'increment inside chunk loop for FILE {destination_filename}'))
 
             logging.info(log_memory_after(f'AFTER write final csv for FILE {destination_filename}'))
