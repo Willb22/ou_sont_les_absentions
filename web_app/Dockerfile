@@ -11,6 +11,12 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install -r /home/web_app_project_root/requirements.txt
 
+COPY web_app/ ./web_app/
+COPY configs/ ./configs/
+COPY db_connections.py ./
+
+
+
 # We need to define the command to launch when we are going to run the image.
 # We use the keyword 'CMD' to do that.
 CMD ["sh", "-c", "python -m web_app"]
