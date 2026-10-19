@@ -70,10 +70,26 @@ terraform_plan:
 	@terraform -chdir=$(TERRAFORM_DIR) plan
 .PHONY: terraform_plan
 
-terraform_deploy_dev:
-	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="dev.tfvars" -auto-approve
-.PHONY: terraform_deploy_dev
+plan_dev:
+	@terraform -chdir=$(TERRAFORM_DIR) plan -var-file="dev.tfvars"
+.PHONY: plan_dev
 
-terraform_deploy_prod:
+terraform_plan_dev: terraform_workspace_dev plan_dev
+
+plan_prod:
+	@terraform -chdir=$(TERRAFORM_DIR) plan -var-file="prod.tfvars"
+.PHONY: plan_prod
+
+terraform_plan_prod: terraform_workspace_prod plan_prod
+
+deploy_dev:
+	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="dev.tfvars" -auto-approve
+.PHONY: deploy_dev
+
+terraform_deploy_dev: terraform_workspace_dev deploy_dev
+
+deploy_prod:
 	@terraform -chdir=$(TERRAFORM_DIR) apply -var-file="prod.tfvars" -auto-approve
-.PHONY: terraform_deploy_prod
+.PHONY: deploy_prod
+
+terraform_deploy_prod: terraform_workspace_prod deploy_prod
