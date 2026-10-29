@@ -7,5 +7,6 @@ data "aws_secretsmanager_secret_version" "db_password" {
 }
 
 locals {
-  db_password_plain = try(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string).password, data.aws_secretsmanager_secret_version.db_password.secret_string)
+  db_password_plain            = try(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string).password, data.aws_secretsmanager_secret_version.db_password.secret_string)
+  db_password_secret_reference = can(jsondecode(data.aws_secretsmanager_secret_version.db_password.secret_string).password) ? "${data.aws_secretsmanager_secret.db_password.arn}:password::" : data.aws_secretsmanager_secret.db_password.arn
 }
