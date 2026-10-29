@@ -55,3 +55,32 @@ variable "db_username" {
 }
 
 
+variable "ecr_web_repo_name" {
+  type        = string
+  default     = "ou_sont_les_absentions-webapp"
+  description = "ECR repo name for web app image"
+}
+
+variable "etl_image_tag" {
+  type        = string
+  default     = "latest"
+  description = "Tag of the ETL image in ECR"
+}
+
+variable "ecs_task_memory" {
+  type        = string
+  default     = "512"
+  description = "Fargate memory (MiB)"
+}
+
+variable "ecs_task_cpu" {
+  type        = string
+  default     = "256"
+  description = "Fargate CPU units"
+}
+
+variable "ecr_etl_repo_name" {
+  type        = string
+  default     = "ou_sont_les_absentions-datafeed"
+  description = "ECR repo name for ETL image"
+}
