@@ -25,11 +25,7 @@ output "ecs_etl_security_group_id" {
 
 output "ecs_etl_subnet_ids" {
   description = "Public subnets to use when launching the ETL Fargate task"
-  value = [
-    "subnet-09337f20c0b553a0c",
-    "subnet-09a7316f06b8db6e6",
-    "subnet-00edd99aabade28b1",
-  ]
+  value       = local.public_subnet_ids
 }
 
 output "etl_task_definition_arn" {
