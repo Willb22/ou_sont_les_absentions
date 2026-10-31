@@ -1,2 +1,2 @@
-deploy_target = "dev"
+deploy_target = "ecs"
 app_env       = "staging"

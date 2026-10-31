@@ -1,9 +1,9 @@
 variable "deploy_target" {
   type        = string
-  description = "Deployment target: dev or prod"
+  description = "Deployment target: ecs or prod"
   validation {
-    condition     = contains(["dev", "prod"], var.deploy_target)
-    error_message = "deploy_target must be dev or prod"
+    condition     = contains(["ecs", "prod"], var.deploy_target)
+    error_message = "deploy_target must be ecs or prod"
   }
 }
 
@@ -36,13 +36,6 @@ variable "db_username" {
   description = "RDS master username"
 }
 
-
-variable "ecr_web_repo_name" {
-  type        = string
-  default     = "ou_sont_les_absentions-webapp"
-  description = "ECR repo name for web app image"
-}
-
 variable "etl_image_tag" {
   type        = string
   default     = "latest"
@@ -65,4 +58,28 @@ variable "ecr_etl_repo_name" {
   type        = string
   default     = "ou_sont_les_absentions-datafeed"
   description = "ECR repo name for ETL image"
+}
+
+variable "ecr_web_repo_name" {
+  type        = string
+  default     = "ou_sont_les_absentions-webapp"
+  description = "ECR repo name for web app image"
+}
+
+variable "domain_name" {
+  type        = string
+  default     = "ousontlesabstentions.org"
+  description = "Root domain name"
+}
+
+variable "web_image_tag" {
+  type        = string
+  default     = "latest"
+  description = "Tag of the web image in ECR"
+}
+
+variable "container_port_web" {
+  type        = number
+  default     = 5000
+  description = "Port the web app container listens on"
 }
