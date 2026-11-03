@@ -1,5 +1,5 @@
 data "aws_secretsmanager_secret" "db_password" {
-  arn = "arn:aws:secretsmanager:eu-north-1:632279305326:secret:postgres/password-MA7JN9"
+  arn = "arn:aws:secretsmanager:${var.aws_region}:632279305326:secret:postgres/password-MA7JN9"
 }
 
 data "aws_secretsmanager_secret_version" "db_password" {
