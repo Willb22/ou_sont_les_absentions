@@ -1,5 +1,7 @@
-data "aws_ecs_cluster" "existing" {
-  cluster_name = "arn:aws:ecs:eu-north-1:632279305326:cluster/ou_sont_les_absentions-datafeed-cluster"
+resource "aws_ecs_cluster" "main" {
+  name = "${local.name_prefix}-cluster"
+
+  tags = local.common_tags
 }
 
 # ETL Task Definition (one-off task)
@@ -98,7 +100,7 @@ resource "aws_ecs_task_definition" "web" {
 # ECS Service for Web App
 resource "aws_ecs_service" "web" {
   name            = "${local.name_prefix}-web-service"
-  cluster         = data.aws_ecs_cluster.existing.id
+  cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.web.arn
   desired_count   = 1 #If a task exits or fails health checks, ECS will often launch a replacement to maintain this value
   launch_type     = "FARGATE"
