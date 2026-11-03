@@ -35,7 +35,7 @@ resource "aws_ecs_task_definition" "etl" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.etl.name
-          awslogs-region        = "eu-north-1"
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
         }
       }
@@ -85,7 +85,7 @@ resource "aws_ecs_task_definition" "web" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.web.name
-          awslogs-region        = "eu-north-1"
+          awslogs-region        = var.aws_region
           awslogs-stream-prefix = "ecs"
         }
       }
