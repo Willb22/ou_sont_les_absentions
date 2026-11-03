@@ -15,7 +15,7 @@ output "ecr_etl_repository_url" {
 
 output "ecs_cluster_name" {
   description = "ECS cluster name"
-  value       = data.aws_ecs_cluster.existing.cluster_name
+  value       = aws_ecs_cluster.main.name
 }
 
 output "ecs_etl_security_group_id" {
