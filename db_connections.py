@@ -40,7 +40,7 @@ class Connectdb:
 		"""
 		user = 'postgres'
 		if table_connection == 'AWS':
-			host = 'ec2-54-173-241-113.compute-1.amazonaws.com' # Public IPv4 DNS, contains elastic IP to AWS instance
+			host = os.environ.get('POSTGRES_HOST', '127.0.0.1')
 			port = os.environ.get('PORT_POSTGRESQL_AWS')
 			passw = os.environ.get('PASSPOSTGRES')
 		elif table_connection == 'docker':
