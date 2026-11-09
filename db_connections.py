@@ -54,6 +54,23 @@ class Connectdb:
 
 		return user, passw, host, port
 
+	def _connect_kwargs(self):
+		'''
+		Return dictionary of connection arguments
+		Parameters
+		---------
+		None
+
+		Returns
+		-------
+		dictionary
+		    Connection arguments
+		SSL is used for AWS RDS but not for docker deployed on local machine or ec2 instance.
+		'''
+		if self.table_connection == 'AWS':
+			return {'sslmode': 'require'}
+		return {}
+
 	def connect_driver(self):
 		"""
         Return psycopg2 connection and cursor objects
@@ -67,11 +84,11 @@ class Connectdb:
         connction and cursor class
         """
 		user, passw, host, port = self.get_credentials(self.table_connection)
+		logging.info(f"Connecting to database {host}:{port} with user {user}")
+		logging.info(f"password length is {len(passw)}")
 
 		# establishing the connection
-		conn = psycopg2.connect(
-			user=user, password=passw, host=host, port=port
-		)
+		conn = psycopg2.connect(user=user, password=passw, host=host, port=port, **self._connect_kwargs())
 		conn.autocommit = True
 		# Creating a cursor object using the cursor() method
 		cursor = conn.cursor()
@@ -117,7 +134,7 @@ class Connectdb:
         """
 		user, passw, host, port = self.get_credentials(self.table_connection)
 		conn_string = f'postgresql://{user}:{passw}@{host}:{port}/{database_name}'
-		engine = create_engine(conn_string, pool_size=42)
+		engine = create_engine(conn_string, pool_size=42, connect_args=self._connect_kwargs())
 		conn_orm = engine.connect()
 		return conn_orm, engine, conn_string
 
