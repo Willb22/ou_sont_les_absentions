@@ -11,6 +11,11 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install -r /home/project_root/requirements.txt
 
+COPY process_data/ ./process_data/
+COPY configs/ ./configs/
+COPY db_connections.py ./
+
+
 # We need to define the command to launch when we are going to run the image.
 # We use the keyword 'CMD' to do that.
 #CMD ["sh", "-c", "python -m process_data"]
