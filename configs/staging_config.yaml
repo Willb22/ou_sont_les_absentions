@@ -4,7 +4,7 @@ web_deployment:
   production_wsgi_server: True
   port: 443
 table_connection:
-  docker
+  AWS
 table_insertions:
   insertion_method: orm
   orm_multiple_inserts: True
