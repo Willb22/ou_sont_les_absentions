@@ -1,7 +1,7 @@
 import yaml
 import logging
 from datetime import datetime
-import os
+import os, sys
 import psutil
 
 now = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -11,13 +11,19 @@ log_filename = f'{project_directory}/logs/app_{now}.log'
 APP_ENV = os.getenv("APP_ENV", "dev")  # default for local dev
 config_filename = f"{current_directory}/{APP_ENV}_config.yaml"
 
+if APP_ENV == 'dev':
+	os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+	logging.basicConfig(level=logging.DEBUG,
+						filename=log_filename ,
+						filemode='a',
+						format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+						datefmt='%Y-%m-%d %H:%M:%S')
+else:
+	logging.basicConfig(level=logging.DEBUG,
+						handlers=[logging.StreamHandler(sys.stdout)],
+						format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+						datefmt='%Y-%m-%d %H:%M:%S')
 
-os.makedirs(os.path.dirname(log_filename), exist_ok=True)
-logging.basicConfig(level=logging.DEBUG,
-                    filename=log_filename ,
-                    filemode='a',
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
 
 free_mem = psutil.virtual_memory().available
 free_mem_MB = free_mem/ 1024**2
