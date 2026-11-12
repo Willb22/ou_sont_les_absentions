@@ -3,8 +3,6 @@ database:
 web_deployment:
   production_wsgi_server: False
   manage_https_cert_files: False
-table_connection:
-  docker
 table_insertions:
   insertion_method: orm
   orm_multiple_inserts: True
