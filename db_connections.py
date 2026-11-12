@@ -39,15 +39,15 @@ class Connectdb:
 		    user, password, host and port
 		"""
 		user = 'postgres'
-		if table_connection == 'AWS':
+		if table_connection == 'AWS_RDS':
 			host = os.environ.get('DB_HOST')
-			port = os.environ.get('PORT_POSTGRESQL_AWS')
+			port = os.environ.get('PORT_POSTGRESQL')
 			passw = os.environ.get('PASSPOSTGRES')
-		elif table_connection == 'docker':
-			host = '127.0.0.1'
-			port = os.environ.get('PORT_POSTGRESQL_DOCKER')
+		elif table_connection == 'EC2_REMOTE':
+			host = os.environ.get('DB_HOST')
+			port = os.environ.get('PORT_POSTGRESQL')
 			passw = os.environ.get('PASSPOSTGRES')
-		elif table_connection == 'local':
+		elif table_connection == 'local_docker':
 			host = '127.0.0.1'
 			port = os.environ.get('PORT_POSTGRESQL')
 			passw = os.environ.get('PASSPOSTGRES')
@@ -67,7 +67,7 @@ class Connectdb:
 		    Connection arguments
 		SSL is used for AWS RDS but not for docker deployed on local machine or ec2 instance.
 		'''
-		if self.table_connection == 'AWS':
+		if self.table_connection == 'AWS_RDS':
 			return {'sslmode': 'require'}
 		return {}
 

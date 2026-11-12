@@ -9,6 +9,7 @@ current_directory = os.path.dirname(__file__)
 project_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
 log_filename = f'{project_directory}/logs/app_{now}.log'
 APP_ENV = os.getenv("APP_ENV", "dev")  # default for local dev
+TABLE_CONNECTION = os.getenv("TABLE_CONNECTION", "local_docker")
 config_filename = f"{current_directory}/{APP_ENV}_config.yaml"
 
 if APP_ENV == 'dev':
@@ -31,6 +32,7 @@ logging.info(f'{free_mem_MB} MB free' )
 
 with open(config_filename, 'r') as file:
 		configurations = yaml.safe_load(file)
+		configurations['table_connection'] = TABLE_CONNECTION
 		configurations['raw_data_sources']['download_chunk_size'] = int(free_mem*configurations['ram_memory_settings']['percentage_for_download']/100)
 		if int(free_mem_MB*configurations['ram_memory_settings']['percentage_for_file_load']/100):
 			configurations['ram_memory_settings']['dask_read_block_size'] = f"{int(free_mem_MB*configurations['ram_memory_settings']['percentage_for_file_load']/100)}MB"
