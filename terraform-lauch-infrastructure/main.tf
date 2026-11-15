@@ -31,6 +31,7 @@ data "aws_route53_zone" "public_root" {
 resource "aws_instance" "ubuntu_ec2" {
   ami           = data.aws_ami.ubuntu_22.id
   instance_type = "t3.micro"
+  subnet_id     = aws_subnet.public.id
   # Specify Security group for all ports on EC2.
   iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
   vpc_security_group_ids = [

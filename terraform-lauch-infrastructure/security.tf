@@ -2,15 +2,10 @@ data "http" "my_ip" {
   url = "https://checkip.amazonaws.com"
 }
 
-data "aws_vpc" "default" {
-  default = true
-}
-
 resource "aws_security_group" "inbound_outbound_access" {
   name        = "open-ports-${var.deploy_target}"
   description = "Specify ingress and egress rules for EC2"
-  #vpc_id = data.aws_vpc.default.id
-  vpc_id = "vpc-045621ccf81395749"
+  vpc_id      = aws_vpc.main.id
   ingress {
     description = "SSH from my IP"
     from_port   = 22
