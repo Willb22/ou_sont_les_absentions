@@ -88,9 +88,6 @@ resource "aws_eip" "web_eip" {
   tags = {
     Name = "${var.deploy_target}-terraform-web-eip"
   }
-  lifecycle {
-  prevent_destroy = true
-  }
 }
 # Associate EIP to the EC2 instance
 resource "aws_eip_association" "web_eip" {

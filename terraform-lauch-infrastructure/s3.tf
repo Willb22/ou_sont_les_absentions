@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "letsencrypt" {
   bucket = var.letsencrypt_bucket_name
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_versioning" "letsencrypt" {
