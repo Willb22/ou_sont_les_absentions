@@ -10,7 +10,7 @@ output "rds_endpoint" {
 
 output "ecr_etl_repository_url" {
   description = "ECR repository URL for ETL"
-  value       = data.aws_ecr_repository.etl.repository_url
+  value       = aws_ecr_repository.etl.repository_url
 }
 
 output "ecs_cluster_name" {

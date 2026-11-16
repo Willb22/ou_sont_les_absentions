@@ -1,0 +1,7 @@
+{
+  "aws_region": "eu-north-1",
+  "ecr": {
+    "web_repository": "ou_sont_les_absentions-webapp",
+    "etl_repository": "ou_sont_les_absentions-datafeed"
+  }
+}

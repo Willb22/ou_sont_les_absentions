@@ -17,7 +17,7 @@ resource "aws_ecs_task_definition" "etl" {
   container_definitions = jsonencode([
     {
       name      = "etl-container"
-      image     = "${data.aws_ecr_repository.etl.repository_url}:${var.etl_image_tag}"
+      image     = "${aws_ecr_repository.etl.repository_url}:${var.etl_image_tag}"
       essential = true
 
       environment = [
@@ -61,7 +61,7 @@ resource "aws_ecs_task_definition" "web" {
   container_definitions = jsonencode([
     {
       name      = "web-container"
-      image     = "${data.aws_ecr_repository.web.repository_url}:${var.web_image_tag}"
+      image     = "${aws_ecr_repository.web.repository_url}:${var.web_image_tag}"
       essential = true
       portMappings = [
         {

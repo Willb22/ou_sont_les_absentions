@@ -60,18 +60,6 @@ variable "ecs_task_cpu" {
   description = "Fargate CPU units"
 }
 
-variable "ecr_etl_repo_name" {
-  type        = string
-  default     = "ou_sont_les_absentions-datafeed"
-  description = "ECR repo name for ETL image"
-}
-
-variable "ecr_web_repo_name" {
-  type        = string
-  default     = "ou_sont_les_absentions-webapp"
-  description = "ECR repo name for web app image"
-}
-
 variable "domain_name" {
   type        = string
   default     = "ousontlesabstentions.org"
