@@ -12,7 +12,20 @@ else
   nginx -t
   systemctl restart nginx
 
-  snap install --classic certbot
+  max_attempts=4
+  attempt=1
+  until snap install --classic certbot; do
+    if [ "$attempt" -ge "$max_attempts" ]; then
+      echo "ERROR: Failed to install Certbot with Snap after $max_attempts attempts." >&2
+      exit 1
+    fi
+
+    delay=$((attempt * 10))
+    echo "WARNING: Certbot Snap installation failed (attempt $attempt/$max_attempts); retrying in ${delay}s." >&2
+    sleep "$delay"
+    attempt=$((attempt + 1))
+  done
+
   ln -sf /snap/bin/certbot /usr/bin/certbot
 
   certbot --nginx \
