@@ -1,9 +1,3 @@
-variable "aws_region" {
-  type        = string
-  default     = "eu-north-1"
-  description = "AWS region for the deployment"
-}
-
 variable "deploy_target" {
   type        = string
   description = "Deployment target: ecs or prod"

@@ -8,6 +8,7 @@ config_file="$script_dir/deployment-config.json"
 image_tag="${1:-latest}"
 web_repo="$(jq -er '.ecr.web_repository | select(type == "string" and length > 0)' "$config_file")"
 etl_repo="$(jq -er '.ecr.etl_repository | select(type == "string" and length > 0)' "$config_file")"
+aws_region="$(jq -er '.aws_region | select(type == "string" and length > 0)' "$config_file")"
 
 terraform -chdir="$script_dir" init -input=false
 terraform -chdir="$script_dir" apply \
@@ -18,11 +19,11 @@ terraform -chdir="$script_dir" apply \
   -var="deploy_target=ecs" \
   -var="app_env=staging"
 
-registry="632279305326.dkr.ecr.eu-north-1.amazonaws.com"
+registry="632279305326.dkr.ecr.${aws_region}.amazonaws.com"
 web_image="${registry}/${web_repo}:${image_tag}"
 etl_image="${registry}/${etl_repo}:${image_tag}"
 
-aws ecr get-login-password --region eu-north-1 |
+aws ecr get-login-password --region "$aws_region" |
   docker login --username AWS --password-stdin "$registry"
 
 docker build --file "$project_root/web_app/Dockerfile" \
