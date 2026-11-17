@@ -2,7 +2,6 @@ database:
   dev_ou_sont_les_abstentions
 web_deployment:
   production_wsgi_server: True
-  manage_https_cert_files: False
 table_insertions:
   insertion_method: orm
   orm_multiple_inserts: True

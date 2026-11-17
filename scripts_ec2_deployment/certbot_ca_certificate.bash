@@ -35,10 +35,4 @@ else
 fi
 nginx -t && systemctl restart nginx
 
-cp "$LE_LIVE_DIR/privkey.pem" "/home/ubuntu/ou_sont_les_absentions/key.pem"
-cp "$LE_LIVE_DIR/fullchain.pem" "/home/ubuntu/ou_sont_les_absentions/cert.pem"
-sudo chown ubuntu:ubuntu /home/ubuntu/ou_sont_les_absentions/key.pem
-sudo chown ubuntu:ubuntu /home/ubuntu/ou_sont_les_absentions/cert.pem
-
 rm -f /etc/nginx/sites-enabled/default
-sudo fuser -k 80/tcp

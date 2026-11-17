@@ -15,14 +15,6 @@ resource "aws_security_group" "inbound_outbound_access" {
   }
 
 
-  # Dev env via port 5000
-  ingress {
-    description = "Web App Port 5000"
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
   # HTTP and HTTPS via port 80 and 443
   ingress {
   description = "HTTP Port 80"
