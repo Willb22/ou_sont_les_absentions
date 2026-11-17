@@ -20,7 +20,7 @@ output "ecs_cluster_name" {
 
 output "ecs_etl_security_group_id" {
   description = "Security group to use when launching the ETL task"
-  value       = data.aws_security_group.ecs_etl_existing.id
+  value       = aws_security_group.ecs_etl.id
 }
 
 output "ecs_etl_subnet_ids" {

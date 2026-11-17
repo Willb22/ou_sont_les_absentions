@@ -107,7 +107,7 @@ resource "aws_ecs_service" "web" {
 
   network_configuration {
     subnets          = local.public_subnet_ids
-    security_groups  = [data.aws_security_group.ecs_web_existing.id]
+    security_groups  = [aws_security_group.ecs_web.id]
     assign_public_ip = true
   }
 

@@ -2,7 +2,7 @@ resource "aws_lb" "main" {
   name               = "${local.name_prefix}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [data.aws_security_group.alb_existing.id]
+  security_groups    = [aws_security_group.alb.id]
   subnets            = local.public_subnet_ids
 
   enable_deletion_protection = false

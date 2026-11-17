@@ -10,7 +10,7 @@ resource "aws_db_instance" "postgres" {
   password               = local.db_password_plain
   port                   = 5432
   db_subnet_group_name   = "default"
-  vpc_security_group_ids = [data.aws_security_group.rds_existing.id]
+  vpc_security_group_ids = [aws_security_group.rds.id]
   publicly_accessible    = false
   skip_final_snapshot    = true
   deletion_protection    = false
