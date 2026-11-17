@@ -72,7 +72,7 @@ resource "aws_instance" "ubuntu_ec2" {
   PROFILEEOF
   chmod +x /etc/profile.d/myapp_env.sh
 
-  sudo -u ubuntu bash /home/ubuntu/ou_sont_les_absentions/scripts_ec2_deployment/bootstrap.sh
+  sudo -u ubuntu bash /home/ubuntu/ou_sont_les_absentions/scripts_ec2_deployment/bootstrap.bash
   EOF
 # String interpolation
 
