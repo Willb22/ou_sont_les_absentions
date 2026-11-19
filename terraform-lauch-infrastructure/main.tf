@@ -39,7 +39,7 @@ resource "aws_instance" "ubuntu_ec2" {
   ]
 
   # AWS key pair for ssh and scp
-  key_name = "first_ec2"
+  key_name = "ssh_key_eu_west_3"
 
   tags = {
     Name = "${var.deploy_target}-ubuntu-22"
