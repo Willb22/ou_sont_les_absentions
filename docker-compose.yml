@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${PASSPOSTGRES}
     ports:
-      - "5432:5432"
+      - "5431:5432"
     env_file:
       - .env
 

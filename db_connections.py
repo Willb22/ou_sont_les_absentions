@@ -39,7 +39,7 @@ class Connectdb:
 		    user, password, host and port
 		"""
 		user = 'postgres'
-		port = os.environ.get('PORT_POSTGRESQL')
+		port = 5431
 		passw = os.environ.get('PASSPOSTGRES')
 
 		if table_connection == 'local_docker':
