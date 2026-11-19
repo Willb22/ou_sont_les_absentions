@@ -1,7 +1,7 @@
 resource "aws_db_instance" "postgres" {
   identifier             = "${local.name_prefix}-postgres"
   engine                 = "postgres"
-  engine_version         = "14.18"
+  engine_version         = "18.3"
   instance_class         = var.rds_instance_class
   allocated_storage      = var.rds_allocated_storage
   storage_type           = "gp3"
