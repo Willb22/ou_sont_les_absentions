@@ -13,7 +13,12 @@ sudo bash -c '
   set -a
   source /home/ubuntu/ou_sont_les_absentions/.env
   set +a
+  if [ -f "/etc/letsencrypt/live/$NAMESPACE/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/$NAMESPACE/privkey.pem" ]; then
+    NGINX_TEMPLATE="/home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.tpl"
+  else
+    NGINX_TEMPLATE="/home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.http.tpl"
+  fi
   envsubst '\''$NAMESPACE'\'' \
-    < /home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.tpl \
+    < "$NGINX_TEMPLATE" \
     > /etc/nginx/nginx.conf
 '

@@ -9,8 +9,8 @@ if [ -f "$LE_LIVE_DIR/privkey.pem" ] && [ -f "$LE_LIVE_DIR/fullchain.pem" ]; the
 else
   echo "Requesting new certificate..."
 
-  nginx -t
-  systemctl restart nginx
+  nginx -t || exit 1
+  systemctl restart nginx || exit 1
 
   max_attempts=4
   attempt=1
@@ -31,8 +31,14 @@ else
   certbot --nginx \
     --non-interactive \
     --agree-tos \
-    -d "$NAMESPACE"
+    -d "$NAMESPACE" || exit 1
 fi
-nginx -t && systemctl restart nginx
+
+envsubst '$NAMESPACE' \
+  < /home/ubuntu/ou_sont_les_absentions/web_app/nginx_conf/nginx.conf.tpl \
+  > /etc/nginx/nginx.conf || exit 1
+
+nginx -t || exit 1
+systemctl restart nginx || exit 1
 
 rm -f /etc/nginx/sites-enabled/default
