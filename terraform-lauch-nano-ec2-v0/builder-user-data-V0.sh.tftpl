@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# ----------------------------------------------------------
+# Redirect both standard output and standard error to 
+# file /var/log/nano-etl.log
+# ----------------------------------------------------------
+exec > >(tee -a /var/log/nano-etl.log) 2>&1
+set -Eeuo pipefail
+
+export AWS_DEFAULT_REGION="${aws_region}"
+
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl git gnupg postgresql-client unzip
+# ----------------------------------------------------------
+# Pass value of either x86_64 or aarch64 to variable AWS_CLI_ARCH
+# ----------------------------------------------------------
+case "$(uname -m)" in
+  x86_64) AWS_CLI_ARCH="x86_64" ;;
+  aarch64) AWS_CLI_ARCH="aarch64" ;;
+  *)
+    echo "Unsupported architecture for AWS CLI: $(uname -m)"
+    exit 1
+    ;;
+esac
+
+AWS_CLI_INSTALLER=$(mktemp -d)
+# ----------------------------------------------------------
+# mktemp -d will create a directory path that does not conflict
+# with the rest of the ec2. Path stored in variable AWS_CLI_INSTALLER
+# ----------------------------------------------------------
+curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$${AWS_CLI_ARCH}.zip" \
+  -o "$AWS_CLI_INSTALLER/awscliv2.zip"
+unzip -q "$AWS_CLI_INSTALLER/awscliv2.zip" -d "$AWS_CLI_INSTALLER"
+"$AWS_CLI_INSTALLER/aws/install"
+rm -rf "$AWS_CLI_INSTALLER"
+aws --version
+
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  > /etc/apt/sources.list.d/docker.list
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
+systemctl enable --now docker
+
+systemctl daemon-reload
+
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+git clone --depth 3 --branch "${git_branch}" "${git_repository}" /opt/nano-ou-sont-les-abstentions
+cd /opt/nano-ou-sont-les-abstentions
+
+aws ecr get-login-password --region "${aws_region}" \
+  | docker login --username AWS --password-stdin "632279305326.dkr.ecr.${aws_region}.amazonaws.com"
+
+docker build -t nano-etl-datafeed:latest -f process_data/Dockerfile .
+docker tag nano-etl-datafeed "${ecr_datafeed_url}:latest"
+docker push "${ecr_datafeed_url}:latest"
+
+docker build -t nano-webapp:latest -f web_app/Dockerfile .
+docker tag nano-webapp "${ecr_webapp_url}:latest"
+docker push "${ecr_webapp_url}:latest"
+
