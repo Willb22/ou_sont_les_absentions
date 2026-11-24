@@ -24,7 +24,7 @@ resource "aws_ecs_task_definition" "etl" {
         { name = "APP_ENV", value = var.app_env },
         { name = "TABLE_CONNECTION", value = "AWS_RDS" },
         { name = "DB_HOST", value = aws_db_instance.postgres.address },
-        { name = "PORT_POSTGRESQL_AWS", value = "5432" },
+        { name = "PORT_POSTGRESQL_AWS", value = tostring(aws_db_instance.postgres.port) },
         { name = "DB_NAME", value = var.db_name },
         { name = "DB_USER", value = var.db_username }
       ]
@@ -74,7 +74,7 @@ resource "aws_ecs_task_definition" "web" {
         { name = "APP_ENV", value = var.app_env },
         { name = "TABLE_CONNECTION", value = "AWS_RDS" },
         { name = "DB_HOST", value = aws_db_instance.postgres.address },
-        { name = "PORT_POSTGRESQL_AWS", value = "5432" },
+        { name = "PORT_POSTGRESQL_AWS", value = tostring(aws_db_instance.postgres.port) },
         { name = "DB_NAME", value = var.db_name },
         { name = "DB_USER", value = var.db_username }
       ]

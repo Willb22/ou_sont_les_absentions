@@ -94,8 +94,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs_etl" {
   security_group_id            = aws_security_group.rds.id
   description                  = "Allow connection from ETL ecs task"
   referenced_security_group_id = aws_security_group.ecs_etl.id
-  from_port                    = 5432
-  to_port                      = 5432
+  from_port                    = aws_db_instance.postgres.port
+  to_port                      = aws_db_instance.postgres.port
   ip_protocol                  = "tcp"
 }
 
@@ -103,8 +103,8 @@ resource "aws_vpc_security_group_ingress_rule" "rds_from_ecs_web" {
   security_group_id            = aws_security_group.rds.id
   description                  = "Allow connection from webapp ecs task"
   referenced_security_group_id = aws_security_group.ecs_web.id
-  from_port                    = 5432
-  to_port                      = 5432
+  from_port                    = aws_db_instance.postgres.port
+  to_port                      = aws_db_instance.postgres.port
   ip_protocol                  = "tcp"
 }
 
