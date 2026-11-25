@@ -7,7 +7,6 @@ resource "aws_db_instance" "postgres" {
   storage_type           = "gp3"
   db_name                = var.db_name
   username               = var.db_username
-  password               = local.db_password_plain
   port                   = 5431
   db_subnet_group_name   = "default"
   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -15,6 +14,7 @@ resource "aws_db_instance" "postgres" {
   skip_final_snapshot    = true
   deletion_protection    = false
   multi_az               = false
+  manage_master_user_password = true
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-rds"

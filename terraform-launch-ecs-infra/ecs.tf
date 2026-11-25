@@ -45,6 +45,8 @@ resource "aws_ecs_task_definition" "etl" {
   ])
 
   tags = local.common_tags
+
+  depends_on = [aws_iam_role_policy.ecs_db_secret_read]
 }
 
 
@@ -95,6 +97,8 @@ resource "aws_ecs_task_definition" "web" {
   ])
 
   tags = local.common_tags
+
+  depends_on = [aws_iam_role_policy.ecs_db_secret_read]
 }
 
 # ECS Service for Web App
