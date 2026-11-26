@@ -21,11 +21,6 @@ variable "git_branch" {
 #   default     = "initial"
 # }
 
-variable "build_status_parameter" {
-  description = "ec2 runner user_data has a aws ssm get-parameter --name BUILD_STATUS_NAME to check if status is complete, pending or failed"
-  type        = string
-  default     = "/nano-ou-sont-les-abstentions/build-status/current"
-}
 variable "app_env" {
   description = "Application configuration name from configs/<name>_config.yaml."
   type        = string
@@ -61,4 +56,16 @@ variable "root_volume_size_gb" {
   description = "EC2 root volume size in GiB."
   type        = number
   default     = 20
+}
+
+variable "app_database_host" {
+  description = "Database host used by the webapp on the runner instance."
+  type        = string
+  default     = "127.0.0.1"
+}
+
+variable "table_connection" {
+  description = "Connect to Database via the Network."
+  type        = string
+  default     = "local_docker"
 }
