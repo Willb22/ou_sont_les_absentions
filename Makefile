@@ -12,16 +12,20 @@ help:  ## List all the recipies of Makefile
 
 
 
-ssh_console_ec2: ## Connect to production ec2 where the webservice is deployed
-	@ssh -v -i aws_rsa_key_pair_2025_05_20.pem ubuntu@$(CONSOLE_EC2)
-.PHONY: ssh_console_ec2
+ssh_ec2_builder: ## Connect to production ec2 where the webservice is deployed
+	@ssh -v -i ssh_key_eu_west_3.pem ubuntu@$(EC2_BUILDER)
+.PHONY: ssh_ec2_builder
 
-ssh_dev_ec2: ## Connect to development ec2 where the webservice is deployed
-	@ssh -v -i aws_rsa_key_pair_2025_05_20.pem ubuntu@$(DEV_EC2)
-.PHONY: ssh_dev_ec2
+ssh_ec2_runner: ## Connect to development ec2 where the webservice is deployed
+	@ssh -v -i ssh_key_eu_west_3.pem ubuntu@$(EC2_RUNNER)
+.PHONY: ssh_ec2_runner
+
+ssh_ec2_dev: ## Connect to development ec2 where the webservice is deployed
+	@ssh -v -i ssh_key_eu_west_3.pem ubuntu@$(DEV_EC2)
+.PHONY: ssh_ec2_dev
 
 ssh_prod_ec2:
-	@ssh -v -i aws_rsa_key_pair_2025_05_20.pem ubuntu@$(PROD_EC2)
+	@ssh -v -i ssh_key_eu_west_3.pem ubuntu@$(PROD_EC2)
 .PHONY: ssh_prod_ec2
 
 webhook_dev: ## trigger webhook from outside GitHub
